@@ -28,7 +28,7 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 - Match found → update existing row (name, role, department, stage refreshed; `updated` date stamped).
 - No match → insert new row with defaults for any missing optional field (`—` or `Applied`).
 
-**Error handling:** if `name` or `email` can't be extracted, nothing is written to the sheet. The failure is logged with timestamp, subject, sender, and the list of missing fields — flagged for manual entry rather than silently dropped.
+**Error handling:** if `name` or `email` can't be extracted, nothing is written to the sheet. The failure is logged with timestamp, subject, sender, and the list of missing fields — flagged for manual entry rather than silently dropped. The error log includes an inline resolve flow: any missing fields are pre-filled as editable inputs (whatever *did* parse carries over), and saving writes the row the same way a clean parse would. This closes the loop — flagged records don't just sit logged forever, they can be completed and saved manually right where they're surfaced.
 
 **Status:** built and tested in [`scenario-1-email-sync/scenario1-email-parser-mvp.html`](../scenario-1-email-sync/scenario1-email-parser-mvp.html).
 

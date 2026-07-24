@@ -248,8 +248,38 @@
     font-size:12.5px;
     margin-bottom:8px;
   }
+  .err-item{flex-direction:column;align-items:stretch;}
+  .err-head{display:flex;gap:10px;}
   .err-item .t{font-family:var(--mono);color:var(--coral);flex-shrink:0;}
   .err-empty{font-size:12.5px;color:#8790B8;}
+
+  .resolve-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+  .resolve-row input{
+    font-family:var(--mono);
+    font-size:12px;
+    background:var(--paper);
+    color:var(--paper-text);
+    border:1px solid var(--paper-line);
+    border-radius:5px;
+    padding:6px 9px;
+    flex:1;
+    min-width:150px;
+  }
+  .resolve-row input.err-field{border-color:var(--coral);}
+  button.resolve-btn{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:600;
+    background:var(--teal);
+    color:var(--ink);
+    border:none;
+    border-radius:5px;
+    padding:7px 14px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  button.resolve-btn:hover{background:var(--teal-dark);color:var(--paper);}
+  .resolve-note{font-size:11px;color:#8790B8;width:100%;margin-top:2px;}
 
   .footer-note{
     margin-top:36px;
@@ -323,6 +353,7 @@ const sheet = [
   {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', department:'Data', stage:'Offer', updated:'Jul 18'},
 ];
 const errors = [];
+let errorSeq = 1;
 
 const samples = {
   'New applicant': `From: notifications@greenhouse.io
@@ -428,11 +459,52 @@ function renderErrors(){
     return;
   }
   zone.innerHTML = errors.map(e=>`
-    <div class="err-item">
-      <span class="t">${e.time}</span>
-      <span><b>${e.subject || '(no subject found)'}</b> — missing ${e.missing.join(', ')}. From: ${e.from || 'unknown'}</span>
+    <div class="err-item" data-id="${e.id}">
+      <div class="err-head">
+        <span class="t">${e.time}</span>
+        <span><b>${e.subject || '(no subject found)'}</b> — missing ${e.missing.join(', ')}. From: ${e.from || 'unknown'}</span>
+      </div>
+      <div class="resolve-row">
+        <input type="text" class="rf-name ${!e.fields.name?'err-field':''}" placeholder="Candidate name" value="${e.fields.name || ''}">
+        <input type="text" class="rf-email ${!e.fields.email?'err-field':''}" placeholder="Candidate email" value="${e.fields.email || ''}">
+        <button class="resolve-btn" onclick="resolveError('${e.id}')">Save row</button>
+      </div>
+      <span class="resolve-note">Fill in what's missing, then save — writes the row the same as a clean parse would.</span>
     </div>
   `).join('');
+}
+
+function resolveError(id){
+  const item = document.querySelector(`.err-item[data-id="${id}"]`);
+  const name = item.querySelector('.rf-name').value.trim();
+  const email = item.querySelector('.rf-email').value.trim();
+  if(!name || !email){
+    item.querySelectorAll('input').forEach(inp=>{
+      if(!inp.value.trim()) inp.classList.add('err-field');
+    });
+    return;
+  }
+  const idx = errors.findIndex(e=>e.id === id);
+  const err = errors[idx];
+  writeRow({
+    name, email,
+    role: err.fields.role, department: err.fields.department, stage: err.fields.stage
+  });
+  errors.splice(idx, 1);
+  renderErrors();
+}
+
+function writeRow(fields){
+  const idx = sheet.findIndex(r=>r.email === fields.email);
+  const mode = idx > -1 ? 'update' : 'add';
+  const today = 'Jul 24';
+  if(idx > -1){
+    sheet[idx] = {...sheet[idx], name:fields.name, role:fields.role||sheet[idx].role, department:fields.department||sheet[idx].department, stage:fields.stage||sheet[idx].stage, updated: today};
+  } else {
+    sheet.unshift({email:fields.email, name:fields.name, role:fields.role||'—', department:fields.department||'—', stage:fields.stage||'Applied', updated: today});
+  }
+  renderSheet(fields.email, mode);
+  return mode;
 }
 
 function handleParse(){
@@ -442,30 +514,24 @@ function handleParse(){
 
   if(!success){
     errors.unshift({
+      id: 'e' + (errorSeq++),
       time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
       subject: fields.subject,
       from: fields.from,
-      missing
+      missing,
+      fields
     });
     renderErrors();
     zone.innerHTML = `
       <div class="trace-card">${raw.replace(/</g,'&lt;')}</div>
       <div class="stamp stamp-error">⚑ FLAGGED — MISSING ${missing.join(' & ').toUpperCase()}</div>
-      <p class="dedup-line">Nothing written to the sheet. Logged below for manual entry instead of silently dropped.</p>
+      <p class="dedup-line">Nothing written to the sheet. Fill in the missing field(s) in the error log below to save it — nothing's lost, just waiting on you.</p>
     `;
     renderSheet(null, null);
     return;
   }
 
-  const idx = sheet.findIndex(r=>r.email === fields.email);
-  const mode = idx > -1 ? 'update' : 'add';
-  const today = 'Jul 24';
-
-  if(idx > -1){
-    sheet[idx] = {...sheet[idx], name:fields.name, role:fields.role||sheet[idx].role, department:fields.department||sheet[idx].department, stage:fields.stage||sheet[idx].stage, updated: today};
-  } else {
-    sheet.unshift({email:fields.email, name:fields.name, role:fields.role||'—', department:fields.department||'—', stage:fields.stage||'Applied', updated: today});
-  }
+  const mode = writeRow(fields);
 
   zone.innerHTML = `
     <div class="trace-card">${highlight(raw, fields)}</div>
