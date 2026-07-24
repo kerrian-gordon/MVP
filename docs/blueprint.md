@@ -54,7 +54,7 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 **Dedup-before-write in practice:** a match (by either method) always updates the existing candidate row (interview date, interviewer, round, stage bumped from `Applied` → `Interview`) — it never inserts a new row. Calendar sync only enriches existing candidate records; new candidates enter the sheet via Scenario 1.
 
-**Error handling:** if neither the email match nor the AI name fallback finds a candidate, nothing is written to the sheet. The failure is logged with timestamp, event title, date, and the parsed attendee list — flagged for manual review rather than silently dropped.
+**Error handling:** if neither the email match nor the AI name fallback finds a candidate, nothing is written to the sheet. The failure is logged with timestamp, event title, date, and the parsed attendee list — flagged for manual review rather than silently dropped. The error log includes an inline resolve flow: pick the correct candidate from a dropdown and attach the invite's interview details to their row, which clears the flag. This closes the loop on error handling — flagged records don't just sit logged forever, they can be resolved manually right where they're surfaced.
 
 **Status:** built and tested in [`scenario-2-calendar-sync/scenario2-calendar-sync-mvp.html`](../scenario-2-calendar-sync/scenario2-calendar-sync-mvp.html).
 
