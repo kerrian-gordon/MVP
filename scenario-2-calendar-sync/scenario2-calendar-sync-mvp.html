@@ -76,37 +76,8 @@
 
   .errlog{margin-top:20px;}
   .err-item{display:flex;gap:10px;padding:10px 12px;background:rgba(225,88,77,0.08);border:1px solid rgba(225,88,77,0.35);border-radius:6px;font-size:12.5px;margin-bottom:8px;}
-  .err-item{flex-direction:column;align-items:stretch;}
-  .err-head{display:flex;gap:10px;}
   .err-item .t{font-family:var(--mono);color:var(--coral);flex-shrink:0;}
   .err-empty{font-size:12.5px;color:#8790B8;}
-
-  .resolve-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
-  .resolve-row select{
-    font-family:var(--mono);
-    font-size:12px;
-    background:var(--paper);
-    color:var(--paper-text);
-    border:1px solid var(--paper-line);
-    border-radius:5px;
-    padding:6px 9px;
-    flex:1;
-    min-width:180px;
-  }
-  button.resolve-btn{
-    font-family:var(--mono);
-    font-size:12px;
-    font-weight:600;
-    background:var(--teal);
-    color:var(--ink);
-    border:none;
-    border-radius:5px;
-    padding:7px 14px;
-    cursor:pointer;
-    flex-shrink:0;
-  }
-  button.resolve-btn:hover{background:var(--teal-dark);color:var(--paper);}
-  .resolve-note{font-size:11px;color:#8790B8;width:100%;margin-top:2px;}
 
   .footer-note{margin-top:36px;font-size:12.5px;color:#8790B8;border-top:1px solid var(--ink-3);padding-top:16px;}
 </style>
@@ -169,7 +140,6 @@ const sheet = [
   {email:'riley.kim@email.com', name:'Riley Kim', role:'Backend Engineer', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 24'},
 ];
 const errors = [];
-let errorSeq = 1;
 
 const samples = {
   'Exact email match': `Title: Interview: Product Designer - Round 2
@@ -265,41 +235,11 @@ function renderErrors(){
     return;
   }
   zone.innerHTML = errors.map(e=>`
-    <div class="err-item" data-id="${e.id}">
-      <div class="err-head">
-        <span class="t">${e.time}</span>
-        <span><b>${e.title || '(no title)'}</b> on ${e.date || 'unknown date'} — no candidate match by email or name. Attendees: ${e.attendees.join(', ') || 'none found'}</span>
-      </div>
-      <div class="resolve-row">
-        <select class="rf-candidate">
-          <option value="">Attach to candidate…</option>
-          ${sheet.map(r=>`<option value="${r.email}">${r.name} — ${r.role}</option>`).join('')}
-        </select>
-        <button class="resolve-btn" onclick="resolveError('${e.id}')">Attach & save</button>
-      </div>
-      <span class="resolve-note">Pick the right candidate — writes the interview details to their row and clears this flag.</span>
+    <div class="err-item">
+      <span class="t">${e.time}</span>
+      <span><b>${e.title || '(no title)'}</b> on ${e.date || 'unknown date'} — no candidate match by email or name. Attendees: ${e.attendees.join(', ') || 'none found'}</span>
     </div>
   `).join('');
-}
-
-function resolveError(id){
-  const item = document.querySelector(`.err-item[data-id="${id}"]`);
-  const email = item.querySelector('.rf-candidate').value;
-  if(!email){
-    item.querySelector('.rf-candidate').style.borderColor = 'var(--coral)';
-    return;
-  }
-  const idx = errors.findIndex(e=>e.id === id);
-  const err = errors[idx];
-  const row = sheet.find(r=>r.email === email);
-  row.interviewDate = err.date || row.interviewDate;
-  row.interviewer = err.interviewer || row.interviewer;
-  row.round = err.round || row.round;
-  if(row.stage === 'Applied') row.stage = 'Interview';
-  row.updated = 'Jul 24';
-  errors.splice(idx, 1);
-  renderErrors();
-  renderSheet(row.email, 'update');
 }
 
 function handleParse(){
@@ -310,12 +250,12 @@ function handleParse(){
   const today = 'Jul 24';
 
   if(!match){
-    errors.unshift({id:'e'+(errorSeq++), time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), title: fields.title, date: fields.date, attendees: fields.attendees, interviewer: fields.interviewer, round: fields.round});
+    errors.unshift({time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), title: fields.title, date: fields.date, attendees: fields.attendees});
     renderErrors();
     zone.innerHTML = `
       <div class="trace-card">${raw.replace(/</g,'&lt;')}</div>
       <div class="stamp stamp-error">⚑ NO MATCH — NEEDS MANUAL REVIEW</div>
-      <p class="dedup-line">No attendee email on file, and no candidate name found in the title. Pick the right candidate in the error log below to attach it — nothing's lost, just waiting on you.</p>
+      <p class="dedup-line">No attendee email on file, and no candidate name found in the title. Logged below instead of silently dropped.</p>
     `;
     renderSheet(null, null);
     return;
