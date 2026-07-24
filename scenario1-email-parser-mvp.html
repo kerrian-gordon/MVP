@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 1 — Email Sync MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10162A;
+    --ink-2:#1B2340;
+    --ink-3:#2A3358;
+    --paper:#F7F2E7;
+    --paper-line:#E1D8C2;
+    --paper-text:#241F14;
+    --paper-muted:#8A8168;
+    --amber:#E3A23C;
+    --amber-dark:#B87A22;
+    --teal:#3FA88B;
+    --teal-dark:#2C7A65;
+    --coral:#E1584D;
+    --coral-dark:#A83A32;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
+    padding:32px 20px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    border-bottom:1px solid var(--ink-3);
+    padding-bottom:20px;
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:var(--mono);
+    font-weight:600;
+    font-size:26px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:14px;
+    color:#B8BEDB;
+    margin-top:6px;
+    max-width:52ch;
+  }
+  .sheet-status{
+    font-family:var(--mono);
+    font-size:12px;
+    color:#B8BEDB;
+    text-align:right;
+  }
+  .sheet-status b{color:var(--paper);font-size:20px;display:block;font-weight:600;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--ink-2);
+    border:1px solid var(--ink-3);
+    border-radius:10px;
+    padding:20px;
+  }
+  .panel h2{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#B8BEDB;
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;}
+
+  .samples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .sample-btn{
+    font-family:var(--mono);
+    font-size:12px;
+    background:transparent;
+    color:#B8BEDB;
+    border:1px solid var(--ink-3);
+    border-radius:6px;
+    padding:8px 12px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .sample-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .sample-btn.active{background:var(--amber);border-color:var(--amber);color:var(--ink);}
+
+  textarea{
+    width:100%;
+    min-height:260px;
+    background:var(--paper);
+    color:var(--paper-text);
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.6;
+    border:1px solid var(--paper-line);
+    border-radius:8px;
+    padding:16px;
+    resize:vertical;
+  }
+  textarea:focus{outline:2px solid var(--amber);outline-offset:1px;}
+
+  .parse-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+  .hint{font-size:12px;color:#8790B8;}
+  button.primary{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:600;
+    background:var(--amber);
+    color:var(--ink);
+    border:none;
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+    transition:transform .1s ease;
+  }
+  button.primary:hover{background:var(--amber-dark);}
+  button.primary:active{transform:scale(0.98);}
+  button.primary:focus-visible{outline:2px solid var(--paper);outline-offset:2px;}
+
+  /* result panel */
+  .result-empty{
+    color:#8790B8;
+    font-size:13px;
+    padding:40px 8px;
+    text-align:center;
+    border:1px dashed var(--ink-3);
+    border-radius:8px;
+  }
+
+  .trace-card{
+    background:var(--paper);
+    color:var(--paper-text);
+    border-radius:8px;
+    padding:16px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.7;
+    white-space:pre-wrap;
+    border:1px solid var(--paper-line);
+    margin-bottom:16px;
+  }
+  mark{
+    background:none;
+    padding:1px 2px;
+    border-radius:3px;
+    font-weight:600;
+  }
+  .m-name{background:#F4D9A6;}
+  .m-email{background:#B7E4D8;}
+  .m-role{background:#CBDCF4;}
+  .m-dept{background:#E4C9F0;}
+  .m-stage{background:#F6C9C4;}
+
+  .fields{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    row-gap:8px;
+    column-gap:14px;
+    font-family:var(--mono);
+    font-size:13px;
+    margin-bottom:16px;
+  }
+  .fields dt{color:var(--paper-muted);text-align:right;}
+  .fields dd{margin:0;font-weight:600;color:var(--paper-text);}
+  .fields{background:var(--paper);border-radius:8px;padding:16px;color:var(--paper-text);}
+  .fields dt{color:#8A8168;}
+
+  .stamp{
+    display:inline-block;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.06em;
+    padding:9px 16px;
+    border-radius:6px;
+    border:2px solid currentColor;
+    transform:rotate(-1.5deg);
+  }
+  .stamp-add{color:var(--teal);}
+  .stamp-update{color:var(--amber-dark);}
+  .stamp-error{color:var(--coral);}
+
+  .dedup-line{font-size:12.5px;color:#B8BEDB;margin-top:10px;}
+
+  /* mock sheet */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--paper-muted);
+    padding:8px 10px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  td{padding:9px 10px;border-bottom:1px solid var(--paper-line);color:var(--paper-text);}
+  tr.updated td{background:#EAF6F1;}
+  tr.new-row td{background:#FCEFD9;}
+  .badge{
+    font-family:var(--mono);
+    font-size:10.5px;
+    padding:2px 7px;
+    border-radius:20px;
+    background:var(--ink-3);
+    color:#B8BEDB;
+  }
+
+  .errlog{margin-top:20px;}
+  .err-item{
+    display:flex;
+    gap:10px;
+    padding:10px 12px;
+    background:rgba(225,88,77,0.08);
+    border:1px solid rgba(225,88,77,0.35);
+    border-radius:6px;
+    font-size:12.5px;
+    margin-bottom:8px;
+  }
+  .err-item .t{font-family:var(--mono);color:var(--coral);flex-shrink:0;}
+  .err-empty{font-size:12.5px;color:#8790B8;}
+
+  .footer-note{
+    margin-top:36px;
+    font-size:12.5px;
+    color:#8790B8;
+    border-top:1px solid var(--ink-3);
+    padding-top:16px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Scenario 1 · MVP</p>
+      <h1>Email → Row Parser</h1>
+      <p class="sub">Proves the parsing and dedup logic before it gets wired into Make. Paste a real recruiting email, or try a sample.</p>
+    </div>
+    <div class="sheet-status">
+      mock tracking sheet<br>
+      <b id="rowCount">3</b> rows
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT: input -->
+    <div class="panel">
+      <h2><span class="dot"></span>Inbox — recruiting label</h2>
+      <div class="samples" id="samples"></div>
+      <textarea id="emailInput" spellcheck="false"></textarea>
+      <div class="parse-row">
+        <span class="hint">Reads From / Subject / body fields</span>
+        <button class="primary" id="parseBtn">Parse email</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: result -->
+    <div class="panel">
+      <h2><span class="dot"></span>Parsed result</h2>
+      <div id="resultZone">
+        <div class="result-empty">Parse an email to see extracted fields, the dedup check, and the row action.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px;">
+    <h2><span class="dot"></span>Mock tracking sheet</h2>
+    <table>
+      <thead>
+        <tr><th>Candidate</th><th>Email</th><th>Role</th><th>Department</th><th>Stage</th><th>Updated</th></tr>
+      </thead>
+      <tbody id="sheetBody"></tbody>
+    </table>
+
+    <div class="errlog">
+      <h2 style="margin-top:18px;"><span class="dot" style="background:var(--coral);"></span>Error log — flagged, not dropped</h2>
+      <div id="errZone"><div class="err-empty">No parse failures yet.</div></div>
+    </div>
+  </div>
+
+  <p class="footer-note">This is a standalone tester for the parsing logic only — it doesn't write to a real spreadsheet or connect to Make. Once field mapping holds up against enough real samples here, the same regex logic drops into the Scenario 1 module.</p>
+
+</div>
+
+<script>
+const sheet = [
+  {email:'jordan.lee@email.com', name:'Jordan Lee', role:'Backend Engineer', department:'Engineering', stage:'Applied', updated:'Jul 20'},
+  {email:'amy.chen@email.com', name:'Amy Chen', role:'Product Designer', department:'Design', stage:'Interview', updated:'Jul 21'},
+  {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', department:'Data', stage:'Offer', updated:'Jul 18'},
+];
+const errors = [];
+
+const samples = {
+  'New applicant': `From: notifications@greenhouse.io
+Subject: New Application: Backend Engineer
+
+A new candidate has applied.
+
+Candidate: Riley Kim
+Email: riley.kim@email.com
+Role: Backend Engineer
+Department: Engineering
+Stage: Applied
+Resume: attached`,
+
+  'Stage change': `From: notifications@greenhouse.io
+Subject: Stage Update: Backend Engineer
+
+Candidate: Jordan Lee
+Email: jordan.lee@email.com
+Role: Backend Engineer
+Department: Engineering
+Stage: Phone Screen`,
+
+  'Unparseable forward': `From: taylor.hm@company.com
+Subject: Fwd: thought this person could be good fit
+
+Hey, forwarding this along — thought this person could
+be a good fit for the design role. Don't have their
+contact info handy, portfolio link below.
+
+[link removed]`
+};
+
+const sampleBar = document.getElementById('samples');
+Object.keys(samples).forEach(name=>{
+  const b = document.createElement('button');
+  b.className = 'sample-btn';
+  b.textContent = name;
+  b.onclick = ()=>{
+    document.querySelectorAll('.sample-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('emailInput').value = samples[name];
+  };
+  sampleBar.appendChild(b);
+});
+document.getElementById('emailInput').value = samples['New applicant'];
+sampleBar.children[0].classList.add('active');
+
+function extract(raw, regex){
+  const m = raw.match(regex);
+  return m ? m[1].trim() : null;
+}
+
+function parseEmail(raw){
+  const fields = {
+    name: extract(raw, /Candidate:\s*(.+)/i),
+    email: extract(raw, /Email:\s*([\w.+-]+@[\w-]+\.[\w.-]+)/i),
+    role: extract(raw, /Role:\s*(.+)/i),
+    department: extract(raw, /Department:\s*(.+)/i),
+    stage: extract(raw, /Stage:\s*(.+)/i),
+    subject: extract(raw, /Subject:\s*(.+)/i),
+    from: extract(raw, /From:\s*(.+)/i),
+  };
+  const missing = [];
+  if(!fields.email) missing.push('candidate email');
+  if(!fields.name) missing.push('candidate name');
+  return { fields, missing, success: missing.length === 0 };
+}
+
+function highlight(raw, fields){
+  let html = raw.replace(/</g,'&lt;');
+  const swaps = [
+    [fields.name, 'm-name'],
+    [fields.email, 'm-email'],
+    [fields.role, 'm-role'],
+    [fields.department, 'm-dept'],
+    [fields.stage, 'm-stage'],
+  ];
+  swaps.forEach(([val, cls])=>{
+    if(!val) return;
+    const esc = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    html = html.replace(new RegExp(esc), `<mark class="${cls}">${val}</mark>`);
+  });
+  return html;
+}
+
+function renderSheet(highlightEmail, mode){
+  const body = document.getElementById('sheetBody');
+  body.innerHTML = '';
+  sheet.forEach(row=>{
+    const tr = document.createElement('tr');
+    if(row.email === highlightEmail && mode) tr.className = mode === 'update' ? 'updated' : 'new-row';
+    tr.innerHTML = `<td>${row.name}</td><td>${row.email}</td><td>${row.role}</td><td>${row.department}</td><td>${row.stage}</td><td>${row.updated}</td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('rowCount').textContent = sheet.length;
+}
+
+function renderErrors(){
+  const zone = document.getElementById('errZone');
+  if(errors.length === 0){
+    zone.innerHTML = '<div class="err-empty">No parse failures yet.</div>';
+    return;
+  }
+  zone.innerHTML = errors.map(e=>`
+    <div class="err-item">
+      <span class="t">${e.time}</span>
+      <span><b>${e.subject || '(no subject found)'}</b> — missing ${e.missing.join(', ')}. From: ${e.from || 'unknown'}</span>
+    </div>
+  `).join('');
+}
+
+function handleParse(){
+  const raw = document.getElementById('emailInput').value;
+  const { fields, missing, success } = parseEmail(raw);
+  const zone = document.getElementById('resultZone');
+
+  if(!success){
+    errors.unshift({
+      time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+      subject: fields.subject,
+      from: fields.from,
+      missing
+    });
+    renderErrors();
+    zone.innerHTML = `
+      <div class="trace-card">${raw.replace(/</g,'&lt;')}</div>
+      <div class="stamp stamp-error">⚑ FLAGGED — MISSING ${missing.join(' & ').toUpperCase()}</div>
+      <p class="dedup-line">Nothing written to the sheet. Logged below for manual entry instead of silently dropped.</p>
+    `;
+    renderSheet(null, null);
+    return;
+  }
+
+  const idx = sheet.findIndex(r=>r.email === fields.email);
+  const mode = idx > -1 ? 'update' : 'add';
+  const today = 'Jul 24';
+
+  if(idx > -1){
+    sheet[idx] = {...sheet[idx], name:fields.name, role:fields.role||sheet[idx].role, department:fields.department||sheet[idx].department, stage:fields.stage||sheet[idx].stage, updated: today};
+  } else {
+    sheet.unshift({email:fields.email, name:fields.name, role:fields.role||'—', department:fields.department||'—', stage:fields.stage||'Applied', updated: today});
+  }
+
+  zone.innerHTML = `
+    <div class="trace-card">${highlight(raw, fields)}</div>
+    <dl class="fields">
+      <dt>Name</dt><dd>${fields.name}</dd>
+      <dt>Email</dt><dd>${fields.email}</dd>
+      <dt>Role</dt><dd>${fields.role || '—'}</dd>
+      <dt>Department</dt><dd>${fields.department || '—'}</dd>
+      <dt>Stage</dt><dd>${fields.stage || '—'}</dd>
+    </dl>
+    <div class="stamp ${mode==='update' ? 'stamp-update' : 'stamp-add'}">
+      ${mode==='update' ? '↻ MATCHED — UPDATE ROW' : '＋ NEW — ADD ROW'}
+    </div>
+    <p class="dedup-line">${mode==='update' ? `Existing row found for ${fields.email} — stage and details refreshed, no duplicate created.` : `No existing row for ${fields.email} — new row inserted.`}</p>
+  `;
+
+  renderSheet(fields.email, mode);
+}
+
+document.getElementById('parseBtn').addEventListener('click', handleParse);
+renderSheet(null, null);
+renderErrors();
+</script>
+</body>
+</html>
