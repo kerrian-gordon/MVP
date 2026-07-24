@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 2 — Calendar Sync MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10162A; --ink-2:#1B2340; --ink-3:#2A3358;
+    --paper:#F7F2E7; --paper-line:#E1D8C2; --paper-text:#241F14; --paper-muted:#8A8168;
+    --amber:#E3A23C; --amber-dark:#B87A22;
+    --teal:#3FA88B; --teal-dark:#2C7A65;
+    --coral:#E1584D; --coral-dark:#A83A32;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--sans);padding:32px 20px 60px;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--ink-3);padding-bottom:20px;margin-bottom:28px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;color:var(--amber);text-transform:uppercase;margin:0 0 6px;}
+  h1{font-family:var(--mono);font-weight:600;font-size:26px;margin:0;letter-spacing:-0.01em;}
+  .sub{font-size:14px;color:#B8BEDB;margin-top:6px;max-width:56ch;}
+  .sheet-status{font-family:var(--mono);font-size:12px;color:#B8BEDB;text-align:right;}
+  .sheet-status b{color:var(--paper);font-size:20px;display:block;font-weight:600;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:10px;padding:20px;}
+  .panel h2{font-family:var(--mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B8BEDB;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;}
+
+  .samples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .sample-btn{font-family:var(--mono);font-size:12px;background:transparent;color:#B8BEDB;border:1px solid var(--ink-3);border-radius:6px;padding:8px 12px;cursor:pointer;transition:all .15s ease;}
+  .sample-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .sample-btn.active{background:var(--amber);border-color:var(--amber);color:var(--ink);}
+
+  textarea{width:100%;min-height:260px;background:var(--paper);color:var(--paper-text);font-family:var(--mono);font-size:12.5px;line-height:1.6;border:1px solid var(--paper-line);border-radius:8px;padding:16px;resize:vertical;}
+  textarea:focus{outline:2px solid var(--amber);outline-offset:1px;}
+
+  .parse-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+  .hint{font-size:12px;color:#8790B8;}
+  button.primary{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--amber);color:var(--ink);border:none;border-radius:6px;padding:11px 20px;cursor:pointer;transition:transform .1s ease;}
+  button.primary:hover{background:var(--amber-dark);}
+  button.primary:active{transform:scale(0.98);}
+  button.primary:focus-visible{outline:2px solid var(--paper);outline-offset:2px;}
+
+  .result-empty{color:#8790B8;font-size:13px;padding:40px 8px;text-align:center;border:1px dashed var(--ink-3);border-radius:8px;}
+
+  .trace-card{background:var(--paper);color:var(--paper-text);border-radius:8px;padding:16px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;border:1px solid var(--paper-line);margin-bottom:16px;}
+  mark{background:none;padding:1px 2px;border-radius:3px;font-weight:600;}
+  .m-attendee{background:#B7E4D8;}
+  .m-name{background:#F4D9A6;}
+
+  .fields{display:grid;grid-template-columns:auto 1fr;row-gap:8px;column-gap:14px;font-family:var(--mono);font-size:13px;margin-bottom:16px;background:var(--paper);border-radius:8px;padding:16px;color:var(--paper-text);}
+  .fields dt{color:#8A8168;text-align:right;}
+  .fields dd{margin:0;font-weight:600;}
+
+  .stamp{display:inline-block;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:0.06em;padding:9px 16px;border-radius:6px;border:2px solid currentColor;transform:rotate(-1.5deg);}
+  .stamp-email{color:var(--teal);}
+  .stamp-ai{color:var(--amber-dark);}
+  .stamp-error{color:var(--coral);}
+
+  .dedup-line{font-size:12.5px;color:#B8BEDB;margin-top:10px;}
+  .confidence{font-size:12px;color:var(--amber);font-family:var(--mono);margin-top:6px;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--paper-muted);padding:8px 8px;border-bottom:1px solid var(--paper-line);}
+  td{padding:9px 8px;border-bottom:1px solid var(--paper-line);color:var(--paper-text);}
+  tr.updated td{background:#EAF6F1;}
+  tr.ai-updated td{background:#FCEFD9;}
+
+  .errlog{margin-top:20px;}
+  .err-item{display:flex;gap:10px;padding:10px 12px;background:rgba(225,88,77,0.08);border:1px solid rgba(225,88,77,0.35);border-radius:6px;font-size:12.5px;margin-bottom:8px;}
+  .err-item .t{font-family:var(--mono);color:var(--coral);flex-shrink:0;}
+  .err-empty{font-size:12.5px;color:#8790B8;}
+
+  .footer-note{margin-top:36px;font-size:12.5px;color:#8790B8;border-top:1px solid var(--ink-3);padding-top:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Scenario 2 · MVP</p>
+      <h1>Calendar → Interview Matcher</h1>
+      <p class="sub">Matches a calendar invite to a candidate by attendee email — no naming convention required — with an AI-style name fallback for invites that don't match cleanly.</p>
+    </div>
+    <div class="sheet-status">mock tracking sheet<br><b id="rowCount">4</b> candidates</div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <h2><span class="dot"></span>Calendar event</h2>
+      <div class="samples" id="samples"></div>
+      <textarea id="eventInput" spellcheck="false"></textarea>
+      <div class="parse-row">
+        <span class="hint">Reads Title / Date / Attendees / Interviewer / Round</span>
+        <button class="primary" id="parseBtn">Match invite</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span>Match result</h2>
+      <div id="resultZone">
+        <div class="result-empty">Match an invite to see the candidate lookup, match method, and what gets written.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px;">
+    <h2><span class="dot"></span>Mock tracking sheet</h2>
+    <table>
+      <thead>
+        <tr><th>Candidate</th><th>Email</th><th>Role</th><th>Stage</th><th>Interview date</th><th>Interviewer</th><th>Round</th><th>Updated</th></tr>
+      </thead>
+      <tbody id="sheetBody"></tbody>
+    </table>
+
+    <div class="errlog">
+      <h2 style="margin-top:18px;"><span class="dot" style="background:var(--coral);"></span>Error log — flagged, not dropped</h2>
+      <div id="errZone"><div class="err-empty">No unmatched invites yet.</div></div>
+    </div>
+  </div>
+
+  <p class="footer-note">Standalone tester for the matching logic only — doesn't connect to a real calendar or Make. Two match paths are simulated: exact attendee-email match (confident, teal) and AI name fallback (needs a glance to confirm, amber). True misses (coral) are logged instead of dropped, same as Scenario 1.</p>
+
+</div>
+
+<script>
+const sheet = [
+  {email:'jordan.lee@email.com', name:'Jordan Lee', role:'Backend Engineer', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 20'},
+  {email:'amy.chen@email.com', name:'Amy Chen', role:'Product Designer', stage:'Interview', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 21'},
+  {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', stage:'Offer', interviewDate:'Jul 15', interviewer:'Dana Cole', round:'Final', updated:'Jul 18'},
+  {email:'riley.kim@email.com', name:'Riley Kim', role:'Backend Engineer', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 24'},
+];
+const errors = [];
+
+const samples = {
+  'Exact email match': `Title: Interview: Product Designer - Round 2
+Date: Jul 28, 2026 2:00 PM
+Attendees: amy.chen@email.com, morgan.price@company.com
+Interviewer: Morgan Price
+Round: Round 2`,
+
+  'AI fallback match': `Title: Interview: Backend Engineer — with Jordan Lee
+Date: Jul 29, 2026 10:30 AM
+Attendees: j.lee.personal@gmail.com, dana.cole@company.com
+Interviewer: Dana Cole
+Round: Round 1`,
+
+  'Unmatched invite': `Title: Coffee chat
+Date: Jul 30, 2026 9:00 AM
+Attendees: unknown@candidate.com, dana.cole@company.com
+Interviewer: Dana Cole
+Round: —`
+};
+
+const sampleBar = document.getElementById('samples');
+Object.keys(samples).forEach(name=>{
+  const b = document.createElement('button');
+  b.className = 'sample-btn';
+  b.textContent = name;
+  b.onclick = ()=>{
+    document.querySelectorAll('.sample-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('eventInput').value = samples[name];
+  };
+  sampleBar.appendChild(b);
+});
+document.getElementById('eventInput').value = samples['Exact email match'];
+sampleBar.children[0].classList.add('active');
+
+function extract(raw, regex){
+  const m = raw.match(regex);
+  return m ? m[1].trim() : null;
+}
+
+function parseEvent(raw){
+  const attendeesRaw = extract(raw, /Attendees:\s*(.+)/i) || '';
+  return {
+    title: extract(raw, /Title:\s*(.+)/i),
+    date: extract(raw, /Date:\s*(.+)/i),
+    attendees: attendeesRaw.split(',').map(a=>a.trim()).filter(Boolean),
+    interviewer: extract(raw, /Interviewer:\s*(.+)/i),
+    round: extract(raw, /Round:\s*(.+)/i),
+  };
+}
+
+function matchCandidate(fields){
+  // 1. exact attendee email match
+  for(const a of fields.attendees){
+    const hit = sheet.find(r=>r.email.toLowerCase() === a.toLowerCase());
+    if(hit) return {row: hit, method: 'email', via: a};
+  }
+  // 2. AI fallback: candidate name appears in title
+  const haystack = (fields.title || '').toLowerCase();
+  for(const row of sheet){
+    if(haystack.includes(row.name.toLowerCase())){
+      return {row, method: 'ai-name', via: row.name};
+    }
+  }
+  return null;
+}
+
+function highlight(raw, via, cls){
+  if(!via) return raw.replace(/</g,'&lt;');
+  let html = raw.replace(/</g,'&lt;');
+  const esc = via.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  html = html.replace(new RegExp(esc), `<mark class="${cls}">${via}</mark>`);
+  return html;
+}
+
+function renderSheet(highlightEmail, mode){
+  const body = document.getElementById('sheetBody');
+  body.innerHTML = '';
+  sheet.forEach(row=>{
+    const tr = document.createElement('tr');
+    if(row.email === highlightEmail && mode) tr.className = mode === 'ai-name' ? 'ai-updated' : 'updated';
+    tr.innerHTML = `<td>${row.name}</td><td>${row.email}</td><td>${row.role}</td><td>${row.stage}</td><td>${row.interviewDate}</td><td>${row.interviewer}</td><td>${row.round}</td><td>${row.updated}</td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('rowCount').textContent = sheet.length;
+}
+
+function renderErrors(){
+  const zone = document.getElementById('errZone');
+  if(errors.length === 0){
+    zone.innerHTML = '<div class="err-empty">No unmatched invites yet.</div>';
+    return;
+  }
+  zone.innerHTML = errors.map(e=>`
+    <div class="err-item">
+      <span class="t">${e.time}</span>
+      <span><b>${e.title || '(no title)'}</b> on ${e.date || 'unknown date'} — no candidate match by email or name. Attendees: ${e.attendees.join(', ') || 'none found'}</span>
+    </div>
+  `).join('');
+}
+
+function handleParse(){
+  const raw = document.getElementById('eventInput').value;
+  const fields = parseEvent(raw);
+  const match = matchCandidate(fields);
+  const zone = document.getElementById('resultZone');
+  const today = 'Jul 24';
+
+  if(!match){
+    errors.unshift({time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), title: fields.title, date: fields.date, attendees: fields.attendees});
+    renderErrors();
+    zone.innerHTML = `
+      <div class="trace-card">${raw.replace(/</g,'&lt;')}</div>
+      <div class="stamp stamp-error">⚑ NO MATCH — NEEDS MANUAL REVIEW</div>
+      <p class="dedup-line">No attendee email on file, and no candidate name found in the title. Logged below instead of silently dropped.</p>
+    `;
+    renderSheet(null, null);
+    return;
+  }
+
+  const { row, method, via } = match;
+  row.interviewDate = fields.date || row.interviewDate;
+  row.interviewer = fields.interviewer || row.interviewer;
+  row.round = fields.round || row.round;
+  if(row.stage === 'Applied') row.stage = 'Interview';
+  row.updated = today;
+
+  const cls = method === 'email' ? 'm-attendee' : 'm-name';
+  const stampClass = method === 'email' ? 'stamp-email' : 'stamp-ai';
+  const stampText = method === 'email' ? '✓ MATCHED — BY ATTENDEE EMAIL' : '◈ MATCHED — AI NAME FALLBACK';
+
+  zone.innerHTML = `
+    <div class="trace-card">${highlight(raw, via, cls)}</div>
+    <dl class="fields">
+      <dt>Candidate</dt><dd>${row.name}</dd>
+      <dt>Interview date</dt><dd>${row.interviewDate}</dd>
+      <dt>Interviewer</dt><dd>${row.interviewer}</dd>
+      <dt>Round</dt><dd>${row.round}</dd>
+    </dl>
+    <div class="stamp ${stampClass}">${stampText}</div>
+    ${method === 'ai-name' ? `<p class="confidence">⚠ Matched by name in event title, not attendee email — worth a glance to confirm it's the right person.</p>` : ''}
+    <p class="dedup-line">Row updated for ${row.email} — no new row created, existing candidate record extended with interview details.</p>
+  `;
+
+  renderSheet(row.email, method);
+}
+
+document.getElementById('parseBtn').addEventListener('click', handleParse);
+renderSheet(null, null);
+renderErrors();
+</script>
+</body>
+</html>

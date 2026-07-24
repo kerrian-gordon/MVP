@@ -34,7 +34,29 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 ## Scenario 2 — Calendar sync
 
-Not started. Spec TBD — will define the calendar event → pipeline record field mapping and dedup key once scoped.
+**Input:** calendar event invite (Title / Date / Attendees / Interviewer / Round).
+
+**Field mapping (regex extraction):**
+
+| Field | Regex | Required? |
+|---|---|---|
+| Title | `/Title:\s*(.+)/i` | No (used for AI name fallback + error log context) |
+| Date | `/Date:\s*(.+)/i` | No |
+| Attendees | `/Attendees:\s*(.+)/i`, then split on `,` | No — but needed for the primary match path |
+| Interviewer | `/Interviewer:\s*(.+)/i` | No |
+| Round | `/Round:\s*(.+)/i` | No |
+
+**Matching key:** two-tier candidate lookup — no naming convention on the invite required.
+
+1. **Exact attendee-email match** — for each parsed attendee address, check it against the tracking sheet's candidate emails (case-insensitive). First hit wins. This is the confident, primary path.
+2. **AI name fallback** — if no attendee email matches, check whether any known candidate's name appears in the event title. Used for invites sent from a personal address that doesn't match what's on file. Flagged in the UI as needing a quick human glance to confirm, since it's a weaker signal than an exact email match.
+3. **No match** — neither path succeeds → treat as unmatched, do not guess.
+
+**Dedup-before-write in practice:** a match (by either method) always updates the existing candidate row (interview date, interviewer, round, stage bumped from `Applied` → `Interview`) — it never inserts a new row. Calendar sync only enriches existing candidate records; new candidates enter the sheet via Scenario 1.
+
+**Error handling:** if neither the email match nor the AI name fallback finds a candidate, nothing is written to the sheet. The failure is logged with timestamp, event title, date, and the parsed attendee list — flagged for manual review rather than silently dropped.
+
+**Status:** built and tested in [`scenario-2-calendar-sync/scenario2-calendar-sync-mvp.html`](../scenario-2-calendar-sync/scenario2-calendar-sync-mvp.html).
 
 ## Scenario 3 — Referral intake
 
