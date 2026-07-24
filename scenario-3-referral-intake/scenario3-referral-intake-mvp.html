@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 3 — Referral Intake MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10162A; --ink-2:#1B2340; --ink-3:#2A3358;
+    --paper:#F7F2E7; --paper-line:#E1D8C2; --paper-text:#241F14; --paper-muted:#8A8168;
+    --amber:#E3A23C; --amber-dark:#B87A22;
+    --teal:#3FA88B; --teal-dark:#2C7A65;
+    --coral:#E1584D; --coral-dark:#A83A32;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--sans);padding:32px 20px 60px;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--ink-3);padding-bottom:20px;margin-bottom:28px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;color:var(--amber);text-transform:uppercase;margin:0 0 6px;}
+  h1{font-family:var(--mono);font-weight:600;font-size:26px;margin:0;letter-spacing:-0.01em;}
+  .sub{font-size:14px;color:#B8BEDB;margin-top:6px;max-width:56ch;}
+  .sheet-status{font-family:var(--mono);font-size:12px;color:#B8BEDB;text-align:right;}
+  .sheet-status b{color:var(--paper);font-size:20px;display:block;font-weight:600;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:10px;padding:20px;}
+  .panel h2{font-family:var(--mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B8BEDB;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;}
+
+  .samples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .sample-btn{font-family:var(--mono);font-size:12px;background:transparent;color:#B8BEDB;border:1px solid var(--ink-3);border-radius:6px;padding:8px 12px;cursor:pointer;transition:all .15s ease;}
+  .sample-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .sample-btn.active{background:var(--amber);border-color:var(--amber);color:var(--ink);}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field.full{grid-column:1 / -1;}
+  label{font-family:var(--mono);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8790B8;}
+  input[type=text], textarea, select{
+    background:var(--paper);
+    color:var(--paper-text);
+    font-family:var(--sans);
+    font-size:13px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    padding:9px 11px;
+  }
+  textarea{min-height:64px;resize:vertical;font-family:var(--sans);}
+  input.err-field, select.err-field{border-color:var(--coral);outline:1px solid var(--coral);}
+  .field-msg{font-size:11px;color:var(--coral);min-height:14px;}
+
+  .parse-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px;}
+  .hint{font-size:12px;color:#8790B8;}
+  button.primary{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--amber);color:var(--ink);border:none;border-radius:6px;padding:11px 20px;cursor:pointer;transition:transform .1s ease;}
+  button.primary:hover{background:var(--amber-dark);}
+  button.primary:active{transform:scale(0.98);}
+  button.primary:focus-visible{outline:2px solid var(--paper);outline-offset:2px;}
+
+  .result-empty{color:#8790B8;font-size:13px;padding:40px 8px;text-align:center;border:1px dashed var(--ink-3);border-radius:8px;}
+
+  .fields{display:grid;grid-template-columns:auto 1fr;row-gap:8px;column-gap:14px;font-family:var(--mono);font-size:13px;margin-bottom:16px;background:var(--paper);border-radius:8px;padding:16px;color:var(--paper-text);}
+  .fields dt{color:#8A8168;text-align:right;}
+  .fields dd{margin:0;font-weight:600;}
+
+  .stamp{display:inline-block;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:0.06em;padding:9px 16px;border-radius:6px;border:2px solid currentColor;transform:rotate(-1.5deg);}
+  .stamp-add{color:var(--teal);}
+  .stamp-update{color:var(--amber-dark);}
+
+  .dedup-line{font-size:12.5px;color:#B8BEDB;margin-top:10px;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--paper-muted);padding:8px 8px;border-bottom:1px solid var(--paper-line);}
+  td{padding:9px 8px;border-bottom:1px solid var(--paper-line);color:var(--paper-text);}
+  tr.updated td{background:#EAF6F1;}
+  tr.new-row td{background:#FCEFD9;}
+
+  .footer-note{margin-top:36px;font-size:12.5px;color:#8790B8;border-top:1px solid var(--ink-3);padding-top:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Scenario 3 · MVP</p>
+      <h1>Referral Intake Form</h1>
+      <p class="sub">Structured entry, no parsing needed — the only thing this scenario has to get right is the same search-before-write dedup check every other scenario uses.</p>
+    </div>
+    <div class="sheet-status">mock tracking sheet<br><b id="rowCount">4</b> candidates</div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <h2><span class="dot"></span>Internal referral form</h2>
+      <div class="samples" id="samples"></div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="refName">Referred by</label>
+          <input type="text" id="refName">
+          <span class="field-msg" id="msg-refName"></span>
+        </div>
+        <div class="field">
+          <label for="candName">Candidate name</label>
+          <input type="text" id="candName">
+          <span class="field-msg" id="msg-candName"></span>
+        </div>
+        <div class="field">
+          <label for="candEmail">Candidate email</label>
+          <input type="text" id="candEmail">
+          <span class="field-msg" id="msg-candEmail"></span>
+        </div>
+        <div class="field">
+          <label for="role">Role</label>
+          <input type="text" id="role">
+        </div>
+        <div class="field">
+          <label for="department">Department</label>
+          <input type="text" id="department">
+        </div>
+        <div class="field full">
+          <label for="note">Why you're referring them</label>
+          <textarea id="note"></textarea>
+        </div>
+      </div>
+
+      <div class="parse-row">
+        <span class="hint">No email or calendar to parse — fields come in structured</span>
+        <button class="primary" id="submitBtn">Submit referral</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span>Result</h2>
+      <div id="resultZone">
+        <div class="result-empty">Submit a referral to see the dedup check and the row action.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px;">
+    <h2><span class="dot"></span>Mock tracking sheet</h2>
+    <table>
+      <thead>
+        <tr><th>Candidate</th><th>Email</th><th>Role</th><th>Department</th><th>Stage</th><th>Referred by</th><th>Updated</th></tr>
+      </thead>
+      <tbody id="sheetBody"></tbody>
+    </table>
+  </div>
+
+  <p class="footer-note">Standalone tester — doesn't connect to a real form or Make. No error log here, unlike Scenarios 1 and 2: since there's nothing to parse, the only failure mode is a required field left blank, which is caught inline before submit rather than flagged after the fact.</p>
+
+</div>
+
+<script>
+const sheet = [
+  {email:'jordan.lee@email.com', name:'Jordan Lee', role:'Backend Engineer', department:'Engineering', stage:'Applied', referredBy:'—', updated:'Jul 20'},
+  {email:'amy.chen@email.com', name:'Amy Chen', role:'Product Designer', department:'Design', stage:'Interview', referredBy:'—', updated:'Jul 21'},
+  {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', department:'Data', stage:'Offer', referredBy:'—', updated:'Jul 18'},
+  {email:'riley.kim@email.com', name:'Riley Kim', role:'Backend Engineer', department:'Engineering', stage:'Applied', referredBy:'—', updated:'Jul 24'},
+];
+
+const samples = {
+  'New referral': {refName:'Dana Cole', candName:'Morgan Diaz', candEmail:'morgan.diaz@email.com', role:'Frontend Engineer', department:'Engineering', note:'Worked together at my last job — strong React skills, would be a great fit.'},
+  'Referral for existing applicant': {refName:'Taylor Brooks', candName:'Jordan Lee', candEmail:'jordan.lee@email.com', role:'Backend Engineer', department:'Engineering', note:'Also referring him — we overlapped at a previous company, great engineer.'},
+};
+
+const ids = ['refName','candName','candEmail','role','department','note'];
+const sampleBar = document.getElementById('samples');
+Object.keys(samples).forEach(name=>{
+  const b = document.createElement('button');
+  b.className = 'sample-btn';
+  b.textContent = name;
+  b.onclick = ()=>{
+    document.querySelectorAll('.sample-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    ids.forEach(id=>document.getElementById(id).value = samples[name][id] || '');
+  };
+  sampleBar.appendChild(b);
+});
+ids.forEach(id=>document.getElementById(id).value = samples['New referral'][id] || '');
+sampleBar.children[0].classList.add('active');
+
+function clearFieldErrors(){
+  ['refName','candName','candEmail'].forEach(id=>{
+    document.getElementById(id).classList.remove('err-field');
+    document.getElementById('msg-'+id).textContent = '';
+  });
+}
+
+function validate(){
+  clearFieldErrors();
+  let ok = true;
+  const refName = document.getElementById('refName').value.trim();
+  const candName = document.getElementById('candName').value.trim();
+  const candEmail = document.getElementById('candEmail').value.trim();
+  const emailOk = /^[\w.+-]+@[\w-]+\.[\w.-]+$/.test(candEmail);
+
+  if(!refName){ flag('refName', 'Required'); ok = false; }
+  if(!candName){ flag('candName', 'Required'); ok = false; }
+  if(!candEmail){ flag('candEmail', 'Required'); ok = false; }
+  else if(!emailOk){ flag('candEmail', 'Not a valid email'); ok = false; }
+
+  return ok ? {refName, candName, candEmail} : null;
+}
+
+function flag(id, msg){
+  document.getElementById(id).classList.add('err-field');
+  document.getElementById('msg-'+id).textContent = msg;
+}
+
+function renderSheet(highlightEmail, mode){
+  const body = document.getElementById('sheetBody');
+  body.innerHTML = '';
+  sheet.forEach(row=>{
+    const tr = document.createElement('tr');
+    if(row.email === highlightEmail && mode) tr.className = mode === 'update' ? 'updated' : 'new-row';
+    tr.innerHTML = `<td>${row.name}</td><td>${row.email}</td><td>${row.role}</td><td>${row.department}</td><td>${row.stage}</td><td>${row.referredBy}</td><td>${row.updated}</td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('rowCount').textContent = sheet.length;
+}
+
+function handleSubmit(){
+  const core = validate();
+  if(!core) return;
+
+  const role = document.getElementById('role').value.trim();
+  const department = document.getElementById('department').value.trim();
+  const note = document.getElementById('note').value.trim();
+  const today = 'Jul 24';
+  const zone = document.getElementById('resultZone');
+
+  const idx = sheet.findIndex(r=>r.email === core.candEmail);
+  const mode = idx > -1 ? 'update' : 'add';
+
+  if(idx > -1){
+    sheet[idx] = {...sheet[idx], name:core.candName, role: role||sheet[idx].role, department: department||sheet[idx].department, referredBy: core.refName, updated: today};
+  } else {
+    sheet.unshift({email:core.candEmail, name:core.candName, role: role||'—', department: department||'—', stage:'Applied', referredBy: core.refName, updated: today});
+  }
+
+  zone.innerHTML = `
+    <dl class="fields">
+      <dt>Candidate</dt><dd>${core.candName}</dd>
+      <dt>Email</dt><dd>${core.candEmail}</dd>
+      <dt>Role</dt><dd>${role || '—'}</dd>
+      <dt>Department</dt><dd>${department || '—'}</dd>
+      <dt>Referred by</dt><dd>${core.refName}</dd>
+      ${note ? `<dt>Note</dt><dd style="font-weight:400;">${note}</dd>` : ''}
+    </dl>
+    <div class="stamp ${mode==='update' ? 'stamp-update' : 'stamp-add'}">
+      ${mode==='update' ? '↻ MATCHED — UPDATE ROW' : '＋ NEW — ADD ROW'}
+    </div>
+    <p class="dedup-line">${mode==='update'
+      ? `Existing row found for ${core.candEmail} — referral tagged onto their current record, no duplicate created. This is what keeps a candidate who applied by email and got referred internally as one row, not two.`
+      : `No existing row for ${core.candEmail} — new row inserted with the referral tag.`}</p>
+  `;
+
+  renderSheet(core.candEmail, mode);
+}
+
+document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+renderSheet(null, null);
+</script>
+</body>
+</html>

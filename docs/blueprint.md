@@ -60,7 +60,27 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 ## Scenario 3 — Referral intake
 
-Not started. Spec TBD — will define the referral-form → pipeline record field mapping and dedup key once scoped.
+**Input:** structured internal referral form (referrer name, candidate name, candidate email, role, department, note) — no parsing required since fields arrive already structured, unlike Scenarios 1 and 2.
+
+**Field mapping:** direct, 1:1 form-field → record mapping (no regex extraction needed):
+
+| Field | Source | Required? |
+|---|---|---|
+| Referred by | form field | Yes |
+| Candidate name | form field | Yes |
+| Candidate email | form field | Yes — also validated against a basic email-format check |
+| Role | form field | No — defaults to `—` on new rows |
+| Department | form field | No — defaults to `—` on new rows |
+| Note | form field | No (informational only, not written to the tracking sheet) |
+
+**Dedup key:** candidate email, matched against the tracking sheet — same as Scenario 1.
+
+- Match found → update existing row (name, role, department refreshed if provided; `referredBy` tagged on; `updated` date stamped). This is what keeps a candidate who applied by email and also got referred internally as one row, not two.
+- No match → insert new row with `stage` defaulted to `Applied` and the referral tag attached.
+
+**Error handling:** unlike Scenarios 1 and 2, there's no error log here — since there's nothing to parse, the only failure mode is a required field left blank or a malformed email, which is validated and flagged **inline, before submit** (red field outline + inline message) rather than logged after the fact. Submission is blocked until required fields are valid.
+
+**Status:** built and tested in [`scenario-3-referral-intake/scenario3-referral-intake-mvp.html`](../scenario-3-referral-intake/scenario3-referral-intake-mvp.html).
 
 ## Scenario 4 — Morning digest
 
