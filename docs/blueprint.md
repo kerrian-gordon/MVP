@@ -84,12 +84,9 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 ## Scenario 4 — Morning digest
 
-**Current status: tester + mockup, no live deployment.** This scenario now has two client-side artifacts:
+**Status:** built and tested in [`scenario-4-morning-digest/scenario4-digest-mvp.html`](../scenario-4-morning-digest/scenario4-digest-mvp.html) — an interactive tester with a "Typical day" / "Quiet day" sample-data toggle against a mock Tracker snapshot. Running it executes the same digest-building logic (filter → format → render) in-browser and shows the resulting plain-text digest inside a Slack-style mock message, with a "Copy plain text" action.
 
-- [`scenario-4-morning-digest/scenario4-digest-mvp.html`](../scenario-4-morning-digest/scenario4-digest-mvp.html) — an interactive tester with a "Typical day" / "Quiet day" sample-data toggle against a mock Tracker snapshot. Running it executes the same digest-building logic (filter → format → render) in-browser and shows the resulting plain-text digest inside a Slack-style mock message, with a "Copy plain text" action.
-- [`scenario-4-morning-digest/scenario4-morning-digest-mockup.html`](../scenario-4-morning-digest/scenario4-morning-digest-mockup.html) — a static, non-interactive visual mockup of the Slack message in context (with reactions, sidebar, etc.), for showing what a recruiter actually sees rather than for testing logic.
-
-Neither reads a real spreadsheet or posts to a real Slack webhook — both are standalone browser testers. The real Apps Script implementation (`postMorningDigest()`, `createDailyDigestTrigger()`) that would run this against a live `Tracker` tab and a real Slack webhook was removed from the repo (still recoverable from git history at commit `13cf93b`) and needs to be restored or rebuilt before this scenario can actually be deployed.
+Like Scenarios 1–3, this is a standalone browser tester — it doesn't read a real spreadsheet or post to a real Slack webhook. The real Apps Script implementation (`postMorningDigest()`, `createDailyDigestTrigger()`) that would run this against a live `Tracker` tab and a real Slack webhook was removed from the repo (still recoverable from git history at commit `13cf93b`) and needs to be restored or rebuilt before this scenario can actually be deployed live.
 
 **Digest-building logic validated by the tester** (same shape as the removed Apps Script version):
 

@@ -39,8 +39,6 @@
     transition:border-color .15s ease, transform .1s ease;
   }
   a.card:hover{border-color:var(--amber);transform:translateY(-1px);}
-  a.card.disabled{cursor:default;opacity:0.6;}
-  a.card.disabled:hover{border-color:var(--ink-3);transform:none;}
 
   .card-num{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--amber);text-transform:uppercase;margin:0 0 8px;}
   .card h2{font-family:var(--mono);font-size:16px;margin:0 0 8px;font-weight:600;}
@@ -56,18 +54,6 @@
     margin-top:12px;
   }
   .badge-built{background:rgba(63,168,139,0.18);color:var(--teal);}
-  .badge-script{background:rgba(227,162,60,0.18);color:var(--amber);}
-
-  .card-split{cursor:default;}
-  .card-split:hover{border-color:var(--ink-3);transform:none;}
-  .card-links{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
-  .card-links a{
-    font-family:var(--mono);
-    font-size:12px;
-    color:var(--amber);
-    text-decoration:none;
-  }
-  .card-links a:hover{text-decoration:underline;color:var(--amber-dark);}
 
   .panel{
     background:var(--ink-2);
@@ -117,16 +103,12 @@
       <span class="badge badge-built">Built · tested MVP</span>
     </a>
 
-    <div class="card card-split">
+    <a class="card" href="scenario-4-morning-digest/scenario4-digest-mvp.html">
       <p class="card-num">Scenario 4</p>
-      <h2>Morning Digest</h2>
-      <p>Two views: an interactive tester that runs the digest-building logic against sample Tracker data, and a static mockup of what the Slack message looks like in context.</p>
-      <span class="badge badge-script">Digest-only · never writes</span>
-      <div class="card-links">
-        <a href="scenario-4-morning-digest/scenario4-digest-mvp.html">Run the interactive tester →</a>
-        <a href="scenario-4-morning-digest/scenario4-morning-digest-mockup.html">View the Slack mockup →</a>
-      </div>
-    </div>
+      <h2>Morning Digest Generator</h2>
+      <p>Reads today's Tracker state and produces the plain-text Slack summary — new applicants, today's interviews, pending offers. The one scenario that only reads, never writes.</p>
+      <span class="badge badge-built">Built · tested MVP</span>
+    </a>
   </div>
 
   <div class="panel">
