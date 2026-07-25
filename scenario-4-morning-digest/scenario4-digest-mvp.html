@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 4 — Morning Digest MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10162A; --ink-2:#1B2340; --ink-3:#2A3358;
+    --paper:#F7F2E7; --paper-line:#E1D8C2; --paper-text:#241F14; --paper-muted:#8A8168;
+    --amber:#E3A23C; --amber-dark:#B87A22;
+    --teal:#3FA88B; --teal-dark:#2C7A65;
+    --coral:#E1584D;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--sans);padding:32px 20px 60px;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--ink-3);padding-bottom:20px;margin-bottom:28px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;color:var(--amber);text-transform:uppercase;margin:0 0 6px;}
+  h1{font-family:var(--mono);font-weight:600;font-size:26px;margin:0;letter-spacing:-0.01em;}
+  .sub{font-size:14px;color:#B8BEDB;margin-top:6px;max-width:58ch;}
+  .sheet-status{font-family:var(--mono);font-size:12px;color:#B8BEDB;text-align:right;}
+  .sheet-status b{color:var(--paper);font-size:20px;display:block;font-weight:600;}
+
+  .samples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .sample-btn{font-family:var(--mono);font-size:12px;background:transparent;color:#B8BEDB;border:1px solid var(--ink-3);border-radius:6px;padding:8px 12px;cursor:pointer;transition:all .15s ease;}
+  .sample-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .sample-btn.active{background:var(--amber);border-color:var(--amber);color:var(--ink);}
+
+  .panel{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:10px;padding:20px;margin-bottom:20px;}
+  .panel h2{font-family:var(--mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B8BEDB;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--paper-muted);padding:8px 8px;border-bottom:1px solid var(--paper-line);}
+  td{padding:9px 8px;border-bottom:1px solid var(--paper-line);color:var(--paper-text);}
+  .tbl-wrap{background:var(--paper);border-radius:8px;padding:4px 12px;overflow-x:auto;}
+  .tag{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:20px;background:var(--ink-3);color:#B8BEDB;}
+  .tag.today{background:var(--amber);color:var(--ink);}
+
+  .run-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px;}
+  .hint{font-size:12px;color:#8790B8;}
+  button.primary{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--amber);color:var(--ink);border:none;border-radius:6px;padding:11px 20px;cursor:pointer;transition:transform .1s ease;}
+  button.primary:hover{background:var(--amber-dark);}
+  button.primary:active{transform:scale(0.98);}
+
+  .result-empty{color:#8790B8;font-size:13px;padding:40px 8px;text-align:center;border:1px dashed var(--ink-3);border-radius:8px;}
+
+  .slack-mock{background:#1a1d29;border:1px solid #35384a;border-radius:8px;padding:0;overflow:hidden;}
+  .slack-head{background:#350d36;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+  .slack-head .ch{color:#c9a4cb;font-weight:400;}
+  .slack-body{padding:16px;}
+  .slack-msg-row{display:flex;gap:10px;}
+  .avatar{width:36px;height:36px;border-radius:6px;background:var(--amber);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:var(--ink);font-size:14px;}
+  .slack-msg-body{flex:1;}
+  .slack-name{font-family:var(--sans);font-weight:700;color:#fff;font-size:13.5px;}
+  .slack-time{font-family:var(--sans);color:#8b8fa3;font-size:11.5px;margin-left:6px;font-weight:400;}
+  .slack-text{font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#d1d2d6;white-space:pre-wrap;margin-top:4px;}
+
+  .copy-row{display:flex;justify-content:flex-end;margin-top:14px;}
+  button.copy-btn{font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--ink-3);color:#B8BEDB;border-radius:6px;padding:8px 14px;cursor:pointer;}
+  button.copy-btn:hover{border-color:var(--teal);color:var(--teal);}
+  button.copy-btn.copied{border-color:var(--teal);color:var(--teal);}
+
+  .footer-note{margin-top:20px;font-size:12.5px;color:#8790B8;border-top:1px solid var(--ink-3);padding-top:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Scenario 4 · MVP</p>
+      <h1>Morning Digest Generator</h1>
+      <p class="sub">The one scenario that only reads. Takes today's Tracker state and produces the plain-text Slack summary — new applicants, today's interviews, pending offers.</p>
+    </div>
+    <div class="sheet-status">reading from<br><b>Tracker</b></div>
+  </header>
+
+  <div class="samples" id="samples"></div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>Tracker snapshot (read-only)</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Candidate</th><th>Role</th><th>Dept</th><th>Stage</th><th>Interview</th><th>Referred by</th><th>Updated</th></tr></thead>
+        <tbody id="sheetBody"></tbody>
+      </table>
+    </div>
+    <div class="run-row">
+      <span class="hint">Rows tagged "today" are what the digest will pick up</span>
+      <button class="primary" id="runBtn">Run 8am digest</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>Slack output</h2>
+    <div id="resultZone">
+      <div class="result-empty">Run the digest to see what actually posts to Slack.</div>
+    </div>
+  </div>
+
+  <p class="footer-note">Standalone tester — doesn't connect to a real sheet or Slack. Reuses the same unified Tracker schema Scenarios 1–3 write to, so this scenario never has its own write logic to get wrong: it can only be as accurate as what the other three already put in the sheet.</p>
+
+</div>
+
+<script>
+const TODAY = 'Jul 24, 2026';
+
+const datasets = {
+  'Typical day': [
+    {name:'Riley Kim', role:'Backend Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 24, 2026'},
+    {name:'Morgan Diaz', role:'Frontend Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'Dana Cole', updated:'Jul 24, 2026'},
+    {name:'Jordan Lee', role:'Backend Engineer', dept:'Engineering', stage:'Interview', interviewDate:'Jul 24, 2026', interviewTime:'10:30 AM', interviewer:'Dana Cole', round:'Round 1', referredBy:'—', updated:'Jul 24, 2026'},
+    {name:'Jamie Fox', role:'Marketing Specialist', dept:'Marketing', stage:'Interview', interviewDate:'Jul 24, 2026', interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 2', referredBy:'—', updated:'Jul 24, 2026'},
+    {name:'Amy Chen', role:'Product Designer', dept:'Design', stage:'Interview', interviewDate:'Jul 28, 2026', interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 2', referredBy:'—', updated:'Jul 21, 2026'},
+    {name:'Sam Torres', role:'Data Analyst', dept:'Data', stage:'Offer', interviewDate:'Jul 15, 2026', interviewTime:null, interviewer:'Dana Cole', round:'Final', referredBy:'—', updated:'Jul 18, 2026'},
+    {name:'Casey Nguyen', role:'UX Researcher', dept:'Design', stage:'Offer', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 22, 2026'},
+    {name:'Alex Rivera', role:'QA Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 19, 2026'},
+  ],
+  'Quiet day': [
+    {name:'Amy Chen', role:'Product Designer', dept:'Design', stage:'Interview', interviewDate:'Jul 28, 2026', interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 2', referredBy:'—', updated:'Jul 21, 2026'},
+    {name:'Alex Rivera', role:'QA Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 19, 2026'},
+    {name:'Jordan Lee', role:'Backend Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 20, 2026'},
+  ],
+};
+
+let currentData = datasets['Typical day'];
+
+const sampleBar = document.getElementById('samples');
+Object.keys(datasets).forEach(name=>{
+  const b = document.createElement('button');
+  b.className = 'sample-btn';
+  b.textContent = name;
+  b.onclick = ()=>{
+    document.querySelectorAll('.sample-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    currentData = datasets[name];
+    renderSheet();
+    document.getElementById('resultZone').innerHTML = '<div class="result-empty">Run the digest to see what actually posts to Slack.</div>';
+  };
+  sampleBar.appendChild(b);
+});
+sampleBar.children[0].classList.add('active');
+
+function renderSheet(){
+  const body = document.getElementById('sheetBody');
+  body.innerHTML = '';
+  currentData.forEach(r=>{
+    const isToday = r.updated === TODAY || r.interviewDate === TODAY;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.role}</td><td>${r.dept}</td><td>${r.stage}</td>
+      <td>${r.interviewDate ? r.interviewDate.replace(', 2026','') + (r.interviewTime ? ' · ' + r.interviewTime : '') : '—'}</td>
+      <td>${r.referredBy}</td>
+      <td>${r.updated.replace(', 2026','')} ${isToday ? '<span class="tag today">today</span>' : ''}</td>`;
+    body.appendChild(tr);
+  });
+}
+renderSheet();
+
+function buildDigest(data){
+  const newApplicants = data.filter(r => r.stage === 'Applied' && r.updated === TODAY);
+  const todaysInterviews = data.filter(r => r.interviewDate === TODAY);
+  const pendingOffers = data.filter(r => r.stage === 'Offer');
+
+  let text = `📋 Morning Recruiting Digest — ${TODAY}\n\n`;
+
+  text += `NEW APPLICANTS (${newApplicants.length})\n`;
+  text += newApplicants.length
+    ? newApplicants.map(r => `• ${r.name} — ${r.role} (${r.dept})${r.referredBy !== '—' ? ' — referred by ' + r.referredBy : ''}`).join('\n')
+    : 'Nothing new today.';
+  text += '\n\n';
+
+  text += `TODAY'S INTERVIEWS (${todaysInterviews.length})\n`;
+  text += todaysInterviews.length
+    ? todaysInterviews.map(r => `• ${r.interviewTime || 'time TBD'} — ${r.name} — ${r.role}, ${r.round || 'round TBD'} with ${r.interviewer || 'TBD'}`).join('\n')
+    : 'No interviews scheduled today.';
+  text += '\n\n';
+
+  text += `PENDING OFFERS (${pendingOffers.length})\n`;
+  text += pendingOffers.length
+    ? pendingOffers.map(r => `• ${r.name} — ${r.role} — offer out since ${r.updated.replace(', 2026','')}`).join('\n')
+    : 'No offers currently pending.';
+
+  return { text, counts: { newApplicants: newApplicants.length, todaysInterviews: todaysInterviews.length, pendingOffers: pendingOffers.length } };
+}
+
+function handleRun(){
+  const { text } = buildDigest(currentData);
+  const zone = document.getElementById('resultZone');
+  zone.innerHTML = `
+    <div class="slack-mock">
+      <div class="slack-head">#recruiting-digest <span class="ch">· 8:00 AM</span></div>
+      <div class="slack-body">
+        <div class="slack-msg-row">
+          <div class="avatar">RB</div>
+          <div class="slack-msg-body">
+            <span class="slack-name">Recruiting Bot</span><span class="slack-time">8:00 AM</span>
+            <div class="slack-text" id="digestText"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="copy-row"><button class="copy-btn" id="copyBtn">Copy plain text</button></div>
+  `;
+  document.getElementById('digestText').textContent = text;
+
+  document.getElementById('copyBtn').addEventListener('click', (ev)=>{
+    navigator.clipboard.writeText(text).then(()=>{
+      ev.target.textContent = 'Copied';
+      ev.target.classList.add('copied');
+      setTimeout(()=>{ ev.target.textContent = 'Copy plain text'; ev.target.classList.remove('copied'); }, 1500);
+    });
+  });
+}
+
+document.getElementById('runBtn').addEventListener('click', handleRun);
+</script>
+</body>
+</html>

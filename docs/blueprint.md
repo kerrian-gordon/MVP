@@ -84,14 +84,18 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 ## Scenario 4 — Morning digest
 
-**Current status: visual mockup only.** The working Apps Script implementation (`postMorningDigest()`) was swapped out temporarily for [`scenario-4-morning-digest/scenario4-morning-digest-mockup.html`](../scenario-4-morning-digest/scenario4-morning-digest-mockup.html) — a static, non-interactive mockup of the Slack message a recruiter sees at 8am. It doesn't read a `Tracker` tab, doesn't run any digest-building logic, and doesn't post anywhere; it's a fixed visual sample. The mockup's own caption references an interactive tester (`scenario4-digest-mvp.html`) for exercising the digest logic against different day scenarios — that file doesn't exist in this repo yet.
+**Current status: tester + mockup, no live deployment.** This scenario now has two client-side artifacts:
 
-**Prior spec (for the removed Apps Script implementation, kept here for reference until it's restored or rebuilt):**
+- [`scenario-4-morning-digest/scenario4-digest-mvp.html`](../scenario-4-morning-digest/scenario4-digest-mvp.html) — an interactive tester with a "Typical day" / "Quiet day" sample-data toggle against a mock Tracker snapshot. Running it executes the same digest-building logic (filter → format → render) in-browser and shows the resulting plain-text digest inside a Slack-style mock message, with a "Copy plain text" action.
+- [`scenario-4-morning-digest/scenario4-morning-digest-mockup.html`](../scenario-4-morning-digest/scenario4-morning-digest-mockup.html) — a static, non-interactive visual mockup of the Slack message in context (with reactions, sidebar, etc.), for showing what a recruiter actually sees rather than for testing logic.
 
-- **Input:** the unified `Tracker` tab (produced by the one-time `migrateToUnifiedTracker()` migration, run manually in the spreadsheet's Apps Script editor). The only scenario that reads across the *entire* pipeline instead of a single incoming record.
-- **Behavior — pure reader, never a writer:** unlike Scenarios 1–3, never writes to `Tracker`. Read-only reporting layer — output is only as accurate as what the other three scenarios have already written. Deliberate deviation from dedup-before-write: nothing to dedup when nothing is being written.
-- **Schedule:** a time-based trigger (`createDailyDigestTrigger()`, run once manually) fired `postMorningDigest()` daily at 8am.
-- **What it reported**, keyed off `Tracker` columns:
+Neither reads a real spreadsheet or posts to a real Slack webhook — both are standalone browser testers. The real Apps Script implementation (`postMorningDigest()`, `createDailyDigestTrigger()`) that would run this against a live `Tracker` tab and a real Slack webhook was removed from the repo (still recoverable from git history at commit `13cf93b`) and needs to be restored or rebuilt before this scenario can actually be deployed.
+
+**Digest-building logic validated by the tester** (same shape as the removed Apps Script version):
+
+- **Input:** the unified `Tracker` tab schema (`CANDIDATE`, `ROLE`, `DEPARTMENT`, `STAGE`, `INTERVIEW DATE`/`TIME`, `INTERVIEWER`, `ROUND`, `REFERRED BY`, `UPDATED`). The only scenario that reads across the *entire* pipeline instead of a single incoming record.
+- **Behavior — pure reader, never a writer:** unlike Scenarios 1–3, never writes back to `Tracker`. Output is only as accurate as what the other three scenarios have already written. Deliberate deviation from dedup-before-write: nothing to dedup when nothing is being written.
+- **What it reports:**
 
   | Section | Filter logic |
   |---|---|
@@ -99,5 +103,6 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
   | Today's interviews | `INTERVIEW DATE` is today |
   | Pending offers | `STAGE = 'Offer'` (no date filter) |
 
-- **Output:** plain text posted to a Slack incoming webhook.
-- **Error handling:** logged to the same `Errors` tab as the migration script — missing `Tracker` columns aborted the digest before sending; a failed Slack post was logged rather than silently swallowed.
+- **Output:** plain text, formatted for Slack.
+
+**Error handling (real implementation only, not exercised by the tester):** the removed Apps Script version logged to the same `Errors` tab as the migration script — missing `Tracker` columns aborted the digest before sending; a failed Slack post was logged rather than silently swallowed. The browser tester has no error path since it always operates on valid, hardcoded sample data.

@@ -58,6 +58,17 @@
   .badge-built{background:rgba(63,168,139,0.18);color:var(--teal);}
   .badge-script{background:rgba(227,162,60,0.18);color:var(--amber);}
 
+  .card-split{cursor:default;}
+  .card-split:hover{border-color:var(--ink-3);transform:none;}
+  .card-links{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+  .card-links a{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--amber);
+    text-decoration:none;
+  }
+  .card-links a:hover{text-decoration:underline;color:var(--amber-dark);}
+
   .panel{
     background:var(--ink-2);
     border:1px solid var(--ink-3);
@@ -106,12 +117,16 @@
       <span class="badge badge-built">Built · tested MVP</span>
     </a>
 
-    <a class="card" href="scenario-4-morning-digest/scenario4-morning-digest-mockup.html">
+    <div class="card card-split">
       <p class="card-num">Scenario 4</p>
       <h2>Morning Digest</h2>
-      <p>Static visual mockup of the Slack message Priya sees at 8am — shows the digest in context rather than letting you swap sample data or run the logic.</p>
-      <span class="badge badge-script">Mockup · visual only</span>
-    </a>
+      <p>Two views: an interactive tester that runs the digest-building logic against sample Tracker data, and a static mockup of what the Slack message looks like in context.</p>
+      <span class="badge badge-script">Digest-only · never writes</span>
+      <div class="card-links">
+        <a href="scenario-4-morning-digest/scenario4-digest-mvp.html">Run the interactive tester →</a>
+        <a href="scenario-4-morning-digest/scenario4-morning-digest-mockup.html">View the Slack mockup →</a>
+      </div>
+    </div>
   </div>
 
   <div class="panel">
