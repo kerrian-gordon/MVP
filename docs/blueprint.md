@@ -84,4 +84,22 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 ## Scenario 4 — Morning digest
 
-Not started. Spec TBD — will define the digest's data sources and summarization/error-reporting rules once scoped.
+**Input:** the unified `Tracker` tab (produced by the one-time `migrateToUnifiedTracker()` migration, run manually in the spreadsheet's Apps Script editor — not part of this repo, since it's a one-off setup step rather than an ongoing scenario). This is the only scenario that reads across the *entire* pipeline instead of a single incoming record.
+
+**Behavior — pure reader, never a writer:** unlike Scenarios 1–3, this scenario never writes to `Tracker`. It's a read-only reporting layer — its output is only as accurate as what the other three scenarios have already written. This is a deliberate deviation from the dedup-before-write principle: there's nothing to dedup because nothing is being written to the candidate data itself.
+
+**Schedule:** a time-based trigger (`createDailyDigestTrigger()`, run once manually to install it) fires `postMorningDigest()` daily at 8am.
+
+**What it reports**, each keyed off `Tracker` columns:
+
+| Section | Filter logic |
+|---|---|
+| New applicants | `STAGE = 'Applied'` and `UPDATED` is today |
+| Today's interviews | `INTERVIEW DATE` is today |
+| Pending offers | `STAGE = 'Offer'` (no date filter — all currently-open offers) |
+
+Output is posted as plain text to a Slack incoming webhook.
+
+**Error handling (adapted for a read-only scenario):** since there's no candidate record to flag inline, failures are logged to the same `Errors` tab used by the migration script, in two cases: (1) required `Tracker` columns are missing (aborts before building the digest — never sends a malformed or partial report), (2) the Slack post itself fails (network/webhook error), so a broken digest is visible and fixable rather than silently never arriving.
+
+**Status:** built as [`scenario-4-morning-digest/scenario4-morning-digest.gs`](../scenario-4-morning-digest/scenario4-morning-digest.gs). Not yet deployed — needs a real `Tracker` tab (run the migration script first) and a real `SLACK_WEBHOOK_URL` before `createDailyDigestTrigger()` is run.
