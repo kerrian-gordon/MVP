@@ -84,22 +84,20 @@ Cross-cutting spec for the recruiting pipeline: field mappings, regex, and error
 
 ## Scenario 4 — Morning digest
 
-**Input:** the unified `Tracker` tab (produced by the one-time `migrateToUnifiedTracker()` migration, run manually in the spreadsheet's Apps Script editor — not part of this repo, since it's a one-off setup step rather than an ongoing scenario). This is the only scenario that reads across the *entire* pipeline instead of a single incoming record.
+**Current status: visual mockup only.** The working Apps Script implementation (`postMorningDigest()`) was swapped out temporarily for [`scenario-4-morning-digest/scenario4-morning-digest-mockup.html`](../scenario-4-morning-digest/scenario4-morning-digest-mockup.html) — a static, non-interactive mockup of the Slack message a recruiter sees at 8am. It doesn't read a `Tracker` tab, doesn't run any digest-building logic, and doesn't post anywhere; it's a fixed visual sample. The mockup's own caption references an interactive tester (`scenario4-digest-mvp.html`) for exercising the digest logic against different day scenarios — that file doesn't exist in this repo yet.
 
-**Behavior — pure reader, never a writer:** unlike Scenarios 1–3, this scenario never writes to `Tracker`. It's a read-only reporting layer — its output is only as accurate as what the other three scenarios have already written. This is a deliberate deviation from the dedup-before-write principle: there's nothing to dedup because nothing is being written to the candidate data itself.
+**Prior spec (for the removed Apps Script implementation, kept here for reference until it's restored or rebuilt):**
 
-**Schedule:** a time-based trigger (`createDailyDigestTrigger()`, run once manually to install it) fires `postMorningDigest()` daily at 8am.
+- **Input:** the unified `Tracker` tab (produced by the one-time `migrateToUnifiedTracker()` migration, run manually in the spreadsheet's Apps Script editor). The only scenario that reads across the *entire* pipeline instead of a single incoming record.
+- **Behavior — pure reader, never a writer:** unlike Scenarios 1–3, never writes to `Tracker`. Read-only reporting layer — output is only as accurate as what the other three scenarios have already written. Deliberate deviation from dedup-before-write: nothing to dedup when nothing is being written.
+- **Schedule:** a time-based trigger (`createDailyDigestTrigger()`, run once manually) fired `postMorningDigest()` daily at 8am.
+- **What it reported**, keyed off `Tracker` columns:
 
-**What it reports**, each keyed off `Tracker` columns:
+  | Section | Filter logic |
+  |---|---|
+  | New applicants | `STAGE = 'Applied'` and `UPDATED` is today |
+  | Today's interviews | `INTERVIEW DATE` is today |
+  | Pending offers | `STAGE = 'Offer'` (no date filter) |
 
-| Section | Filter logic |
-|---|---|
-| New applicants | `STAGE = 'Applied'` and `UPDATED` is today |
-| Today's interviews | `INTERVIEW DATE` is today |
-| Pending offers | `STAGE = 'Offer'` (no date filter — all currently-open offers) |
-
-Output is posted as plain text to a Slack incoming webhook.
-
-**Error handling (adapted for a read-only scenario):** since there's no candidate record to flag inline, failures are logged to the same `Errors` tab used by the migration script, in two cases: (1) required `Tracker` columns are missing (aborts before building the digest — never sends a malformed or partial report), (2) the Slack post itself fails (network/webhook error), so a broken digest is visible and fixable rather than silently never arriving.
-
-**Status:** built as [`scenario-4-morning-digest/scenario4-morning-digest.gs`](../scenario-4-morning-digest/scenario4-morning-digest.gs). Not yet deployed — needs a real `Tracker` tab (run the migration script first) and a real `SLACK_WEBHOOK_URL` before `createDailyDigestTrigger()` is run.
+- **Output:** plain text posted to a Slack incoming webhook.
+- **Error handling:** logged to the same `Errors` tab as the migration script — missing `Tracker` columns aborted the digest before sending; a failed Slack post was logged rather than silently swallowed.
