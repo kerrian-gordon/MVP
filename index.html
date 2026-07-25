@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruiting Pipeline — MVPs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10162A; --ink-2:#1B2340; --ink-3:#2A3358;
+    --paper:#F7F2E7; --paper-line:#E1D8C2; --paper-text:#241F14; --paper-muted:#8A8168;
+    --amber:#E3A23C; --amber-dark:#B87A22;
+    --teal:#3FA88B; --teal-dark:#2C7A65;
+    --coral:#E1584D;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--sans);padding:48px 20px 60px;}
+  .wrap{max-width:920px;margin:0 auto;}
+
+  header{border-bottom:1px solid var(--ink-3);padding-bottom:24px;margin-bottom:32px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;color:var(--amber);text-transform:uppercase;margin:0 0 8px;}
+  h1{font-family:var(--mono);font-weight:600;font-size:30px;margin:0;letter-spacing:-0.01em;}
+  .sub{font-size:15px;color:#B8BEDB;margin-top:10px;max-width:60ch;line-height:1.6;}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px;}
+  @media (max-width:720px){ .cards{grid-template-columns:1fr;} }
+
+  a.card{
+    display:block;
+    background:var(--ink-2);
+    border:1px solid var(--ink-3);
+    border-radius:10px;
+    padding:20px;
+    text-decoration:none;
+    color:var(--paper);
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  a.card:hover{border-color:var(--amber);transform:translateY(-1px);}
+  a.card.disabled{cursor:default;opacity:0.6;}
+  a.card.disabled:hover{border-color:var(--ink-3);transform:none;}
+
+  .card-num{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--amber);text-transform:uppercase;margin:0 0 8px;}
+  .card h2{font-family:var(--mono);font-size:16px;margin:0 0 8px;font-weight:600;}
+  .card p{font-size:13px;color:#B8BEDB;margin:0;line-height:1.55;}
+  .badge{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:20px;
+    margin-top:12px;
+  }
+  .badge-built{background:rgba(63,168,139,0.18);color:var(--teal);}
+  .badge-script{background:rgba(227,162,60,0.18);color:var(--amber);}
+
+  .panel{
+    background:var(--ink-2);
+    border:1px solid var(--ink-3);
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .panel h2{font-family:var(--mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B8BEDB;margin:0 0 12px;}
+  .panel p{font-size:13.5px;color:var(--paper);line-height:1.7;margin:0 0 10px;}
+  .panel p:last-child{margin-bottom:0;}
+  .panel a{color:var(--amber);text-decoration:none;}
+  .panel a:hover{text-decoration:underline;}
+
+  .footer-note{margin-top:32px;font-size:12.5px;color:#8790B8;border-top:1px solid var(--ink-3);padding-top:16px;}
+  .footer-note a{color:#B8BEDB;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Recruiting Pipeline</p>
+    <h1>Recruiting Pipeline — MVPs</h1>
+    <p class="sub">Standalone MVP testers proving out each piece of the recruiting automation pipeline before it's wired into Make. Every scenario shares two rules: dedup-before-write, and visible error logging instead of silent drops.</p>
+  </header>
+
+  <div class="cards">
+    <a class="card" href="scenario-1-email-sync/scenario1-email-parser-mvp.html">
+      <p class="card-num">Scenario 1</p>
+      <h2>Email → Row Parser</h2>
+      <p>Parses a recruiting email into candidate fields and writes (or updates) a tracking-sheet row, with an inline fix-and-save flow for anything that fails to parse.</p>
+      <span class="badge badge-built">Built · tested MVP</span>
+    </a>
+
+    <a class="card" href="scenario-2-calendar-sync/scenario2-calendar-sync-mvp.html">
+      <p class="card-num">Scenario 2</p>
+      <h2>Calendar → Interview Matcher</h2>
+      <p>Matches a calendar invite to a candidate by attendee email, with an AI-style name fallback for invites that don't match cleanly.</p>
+      <span class="badge badge-built">Built · tested MVP</span>
+    </a>
+
+    <a class="card" href="scenario-3-referral-intake/scenario3-referral-intake-mvp.html">
+      <p class="card-num">Scenario 3</p>
+      <h2>Referral Intake Form</h2>
+      <p>Structured internal referral form — no parsing needed, just the same search-before-write dedup check every other scenario uses.</p>
+      <span class="badge badge-built">Built · tested MVP</span>
+    </a>
+
+    <a class="card disabled" href="https://github.com/kerrian-gordon/recruiting-pipeline/blob/main/scenario-4-morning-digest/scenario4-morning-digest.gs">
+      <p class="card-num">Scenario 4</p>
+      <h2>Morning Digest</h2>
+      <p>Google Apps Script — reads the unified tracker and posts a daily summary to Slack. Runs inside Google Sheets, not in the browser, so it's linked on GitHub rather than live here.</p>
+      <span class="badge badge-script">Apps Script · view source</span>
+    </a>
+  </div>
+
+  <div class="panel">
+    <h2>Docs</h2>
+    <p><a href="https://github.com/kerrian-gordon/recruiting-pipeline#readme">README</a> — status table and shared design principles.</p>
+    <p><a href="https://github.com/kerrian-gordon/recruiting-pipeline/blob/main/docs/blueprint.md">docs/blueprint.md</a> — full field-mapping, regex, and error-handling spec for all four scenarios.</p>
+  </div>
+
+  <p class="footer-note">These are standalone testers only — none connect to a real spreadsheet, calendar, or Make scenario. See the <a href="https://github.com/kerrian-gordon/recruiting-pipeline">repository</a> for source.</p>
+
+</div>
+</body>
+</html>
