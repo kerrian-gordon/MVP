@@ -112,21 +112,32 @@
 <script>
 const TODAY = 'Jul 24, 2026';
 
+// Real candidates from demo-data/tracker-seed-demo.csv (strong_hires_filtered).
+// To actually demonstrate the digest firing, 4 rows below have their date
+// deliberately bumped to TODAY — flagged inline. Everyone else keeps their real
+// 2019 date and correctly stays out of every section, same as it would in a
+// live run. The dataset has no Offer-stage candidates at all (source data only
+// has Applied/Interview) — the two OFFER rows are synthetic placeholders, not
+// sourced from the real dataset, kept only so the digest has something to show
+// in that section.
 const datasets = {
   'Typical day': [
-    {name:'Riley Kim', role:'Backend Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 24, 2026'},
-    {name:'Morgan Diaz', role:'Frontend Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'Dana Cole', updated:'Jul 24, 2026'},
-    {name:'Jordan Lee', role:'Backend Engineer', dept:'Engineering', stage:'Interview', interviewDate:'Jul 24, 2026', interviewTime:'10:30 AM', interviewer:'Dana Cole', round:'Round 1', referredBy:'—', updated:'Jul 24, 2026'},
-    {name:'Jamie Fox', role:'Marketing Specialist', dept:'Marketing', stage:'Interview', interviewDate:'Jul 24, 2026', interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 2', referredBy:'—', updated:'Jul 24, 2026'},
-    {name:'Amy Chen', role:'Product Designer', dept:'Design', stage:'Interview', interviewDate:'Jul 28, 2026', interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 2', referredBy:'—', updated:'Jul 21, 2026'},
+    // -- bumped to TODAY, to demonstrate "new applicants" --
+    {name:'Daneault, Lynn', role:'Sales Manager', dept:'Sales', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:TODAY},
+    {name:'Athwal, Sam', role:'Production Technician I', dept:'Production', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'Employee Referral', updated:TODAY},
+    // -- bumped to TODAY, to demonstrate "today's interviews" --
+    {name:'Jackson, Maryellen', role:'Production Technician I', dept:'Production', stage:'Interview', interviewDate:TODAY, interviewTime:'10:30 AM', interviewer:'Dana Cole', round:'Round 2', referredBy:'LinkedIn', updated:TODAY},
+    {name:'Gonzalez, Maria', role:'IT Support', dept:'IT/IS', stage:'Interview', interviewDate:TODAY, interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 1', referredBy:'Employee Referral', updated:TODAY},
+    // -- real dates, correctly NOT today: shows the digest ignoring older activity --
+    {name:'Bacong, Alejandro', role:'IT Support', dept:'IT/IS', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'Indeed', updated:'2/18/2019'},
+    {name:'Liebig, Ketsia', role:'Production Manager', dept:'Production', stage:'Interview', interviewDate:'1/15/2019', interviewTime:null, interviewer:'Dana Cole', round:'Round 1', referredBy:'Website', updated:'1/15/2019'},
+    // -- synthetic, not from the real dataset (no Offer-stage rows exist in the source) --
     {name:'Sam Torres', role:'Data Analyst', dept:'Data', stage:'Offer', interviewDate:'Jul 15, 2026', interviewTime:null, interviewer:'Dana Cole', round:'Final', referredBy:'—', updated:'Jul 18, 2026'},
     {name:'Casey Nguyen', role:'UX Researcher', dept:'Design', stage:'Offer', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 22, 2026'},
-    {name:'Alex Rivera', role:'QA Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 19, 2026'},
   ],
   'Quiet day': [
-    {name:'Amy Chen', role:'Product Designer', dept:'Design', stage:'Interview', interviewDate:'Jul 28, 2026', interviewTime:'2:00 PM', interviewer:'Morgan Price', round:'Round 2', referredBy:'—', updated:'Jul 21, 2026'},
-    {name:'Alex Rivera', role:'QA Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 19, 2026'},
-    {name:'Jordan Lee', role:'Backend Engineer', dept:'Engineering', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'—', updated:'Jul 20, 2026'},
+    {name:'Spirea, Kelley', role:'Production Manager', dept:'Production', stage:'Interview', interviewDate:'2/9/2019', interviewTime:null, interviewer:'Dana Cole', round:'Round 1', referredBy:'LinkedIn', updated:'2/9/2019'},
+    {name:'Fancett, Nicole', role:'Production Technician II', dept:'Production', stage:'Applied', interviewDate:null, interviewTime:null, interviewer:null, round:null, referredBy:'LinkedIn', updated:'1/7/2019'},
   ],
 };
 
