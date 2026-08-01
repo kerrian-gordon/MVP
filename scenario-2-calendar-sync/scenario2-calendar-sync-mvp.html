@@ -76,8 +76,37 @@
 
   .errlog{margin-top:20px;}
   .err-item{display:flex;gap:10px;padding:10px 12px;background:rgba(225,88,77,0.08);border:1px solid rgba(225,88,77,0.35);border-radius:6px;font-size:12.5px;margin-bottom:8px;}
+  .err-item{flex-direction:column;align-items:stretch;}
+  .err-head{display:flex;gap:10px;}
   .err-item .t{font-family:var(--mono);color:var(--coral);flex-shrink:0;}
   .err-empty{font-size:12.5px;color:#8790B8;}
+
+  .resolve-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+  .resolve-row select{
+    font-family:var(--mono);
+    font-size:12px;
+    background:var(--paper);
+    color:var(--paper-text);
+    border:1px solid var(--paper-line);
+    border-radius:5px;
+    padding:6px 9px;
+    flex:1;
+    min-width:180px;
+  }
+  button.resolve-btn{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:600;
+    background:var(--teal);
+    color:var(--ink);
+    border:none;
+    border-radius:5px;
+    padding:7px 14px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  button.resolve-btn:hover{background:var(--teal-dark);color:var(--paper);}
+  .resolve-note{font-size:11px;color:#8790B8;width:100%;margin-top:2px;}
 
   .footer-note{margin-top:36px;font-size:12.5px;color:#8790B8;border-top:1px solid var(--ink-3);padding-top:16px;}
 </style>
@@ -91,7 +120,7 @@
       <h1>Calendar → Interview Matcher</h1>
       <p class="sub">Matches a calendar invite to a candidate by attendee email — no naming convention required — with an AI-style name fallback for invites that don't match cleanly.</p>
     </div>
-    <div class="sheet-status">mock tracking sheet<br><b id="rowCount">4</b> candidates</div>
+    <div class="sheet-status">mock tracking sheet<br><b id="rowCount">7</b> candidates</div>
   </header>
 
   <div class="grid">
@@ -133,29 +162,36 @@
 </div>
 
 <script>
+// Baseline sheet seeded from demo-data/tracker-seed-demo.csv (7 of 151 rows) —
+// real names/roles/dates; Interview-stage rows carry the generated interviewer
+// assignments from generate_tracker_seed.py. See demo-data/README.md.
 const sheet = [
-  {email:'jordan.lee@email.com', name:'Jordan Lee', role:'Backend Engineer', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 20'},
-  {email:'amy.chen@email.com', name:'Amy Chen', role:'Product Designer', stage:'Interview', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 21'},
-  {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', stage:'Offer', interviewDate:'Jul 15', interviewer:'Dana Cole', round:'Final', updated:'Jul 18'},
-  {email:'riley.kim@email.com', name:'Riley Kim', role:'Backend Engineer', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'Jul 24'},
+  {email:'dolan.linda@example.com', name:'Dolan, Linda', role:'IT Support', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'2/25/2019'},
+  {email:'billis.helen@example.com', name:'Billis, Helen', role:'Production Technician I', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'2/27/2019'},
+  {email:'dee.randy@example.com', name:'Dee, Randy', role:'Production Technician I', stage:'Applied', interviewDate:'—', interviewer:'—', round:'—', updated:'1/31/2019'},
+  {email:'moumanil.maliki@example.com', name:'Moumanil, Maliki', role:'Production Technician II', stage:'Interview', interviewDate:'1/24/2019', interviewer:'Dana Cole', round:'Round 1', updated:'1/28/2019'},
+  {email:'newman.richard@example.com', name:'Newman, Richard', role:'Production Technician I', stage:'Interview', interviewDate:'2/12/2019', interviewer:'Dana Cole', round:'Round 1', updated:'2/18/2019'},
+  {email:'johnston.yen@example.com', name:'Johnston, Yen', role:'Production Technician II', stage:'Interview', interviewDate:'1/8/2019', interviewer:'Dana Cole', round:'Round 1', updated:'1/11/2019'},
+  {email:'potts.xana@example.com', name:'Potts, Xana', role:'Area Sales Manager', stage:'Interview', interviewDate:'1/28/2019', interviewer:'Jordan Blake', round:'Round 1', updated:'2/1/2019'},
 ];
 const errors = [];
+let errorSeq = 1;
 
 const samples = {
-  'Exact email match': `Title: Interview: Product Designer - Round 2
-Date: Jul 28, 2026 2:00 PM
-Attendees: amy.chen@email.com, morgan.price@company.com
-Interviewer: Morgan Price
-Round: Round 2`,
+  'Exact email match': `Title: Interview: IT Support - Round 1
+Date: Mar 4, 2019 2:00 PM
+Attendees: dolan.linda@example.com, dana.cole@company.com
+Interviewer: Dana Cole
+Round: Round 1`,
 
-  'AI fallback match': `Title: Interview: Backend Engineer — with Jordan Lee
-Date: Jul 29, 2026 10:30 AM
-Attendees: j.lee.personal@gmail.com, dana.cole@company.com
+  'AI fallback match': `Title: Interview: Production Technician I — with Billis, Helen
+Date: Mar 5, 2019 10:30 AM
+Attendees: h.billis.personal@gmail.com, dana.cole@company.com
 Interviewer: Dana Cole
 Round: Round 1`,
 
   'Unmatched invite': `Title: Coffee chat
-Date: Jul 30, 2026 9:00 AM
+Date: Mar 6, 2019 9:00 AM
 Attendees: unknown@candidate.com, dana.cole@company.com
 Interviewer: Dana Cole
 Round: —`
@@ -235,11 +271,41 @@ function renderErrors(){
     return;
   }
   zone.innerHTML = errors.map(e=>`
-    <div class="err-item">
-      <span class="t">${e.time}</span>
-      <span><b>${e.title || '(no title)'}</b> on ${e.date || 'unknown date'} — no candidate match by email or name. Attendees: ${e.attendees.join(', ') || 'none found'}</span>
+    <div class="err-item" data-id="${e.id}">
+      <div class="err-head">
+        <span class="t">${e.time}</span>
+        <span><b>${e.title || '(no title)'}</b> on ${e.date || 'unknown date'} — no candidate match by email or name. Attendees: ${e.attendees.join(', ') || 'none found'}</span>
+      </div>
+      <div class="resolve-row">
+        <select class="rf-candidate">
+          <option value="">Attach to candidate…</option>
+          ${sheet.map(r=>`<option value="${r.email}">${r.name} — ${r.role}</option>`).join('')}
+        </select>
+        <button class="resolve-btn" onclick="resolveError('${e.id}')">Attach & save</button>
+      </div>
+      <span class="resolve-note">Pick the right candidate — writes the interview details to their row and clears this flag.</span>
     </div>
   `).join('');
+}
+
+function resolveError(id){
+  const item = document.querySelector(`.err-item[data-id="${id}"]`);
+  const email = item.querySelector('.rf-candidate').value;
+  if(!email){
+    item.querySelector('.rf-candidate').style.borderColor = 'var(--coral)';
+    return;
+  }
+  const idx = errors.findIndex(e=>e.id === id);
+  const err = errors[idx];
+  const row = sheet.find(r=>r.email === email);
+  row.interviewDate = err.date || row.interviewDate;
+  row.interviewer = err.interviewer || row.interviewer;
+  row.round = err.round || row.round;
+  if(row.stage === 'Applied') row.stage = 'Interview';
+  row.updated = 'Jul 24';
+  errors.splice(idx, 1);
+  renderErrors();
+  renderSheet(row.email, 'update');
 }
 
 function handleParse(){
@@ -250,12 +316,12 @@ function handleParse(){
   const today = 'Jul 24';
 
   if(!match){
-    errors.unshift({time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), title: fields.title, date: fields.date, attendees: fields.attendees});
+    errors.unshift({id:'e'+(errorSeq++), time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), title: fields.title, date: fields.date, attendees: fields.attendees, interviewer: fields.interviewer, round: fields.round});
     renderErrors();
     zone.innerHTML = `
       <div class="trace-card">${raw.replace(/</g,'&lt;')}</div>
       <div class="stamp stamp-error">⚑ NO MATCH — NEEDS MANUAL REVIEW</div>
-      <p class="dedup-line">No attendee email on file, and no candidate name found in the title. Logged below instead of silently dropped.</p>
+      <p class="dedup-line">No attendee email on file, and no candidate name found in the title. Pick the right candidate in the error log below to attach it — nothing's lost, just waiting on you.</p>
     `;
     renderSheet(null, null);
     return;
