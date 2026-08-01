@@ -93,7 +93,7 @@
       <h1>Referral Intake Form</h1>
       <p class="sub">Structured entry, no parsing needed — the only thing this scenario has to get right is the same search-before-write dedup check every other scenario uses.</p>
     </div>
-    <div class="sheet-status">mock tracking sheet<br><b id="rowCount">4</b> candidates</div>
+    <div class="sheet-status">mock tracking sheet<br><b id="rowCount">8</b> candidates</div>
   </header>
 
   <div class="grid">
@@ -160,16 +160,22 @@
 </div>
 
 <script>
+// Baseline sheet seeded from demo-data/tracker-seed-demo.csv (8 of 151 rows) —
+// real names/roles/departments/dates. See demo-data/README.md.
 const sheet = [
-  {email:'jordan.lee@email.com', name:'Jordan Lee', role:'Backend Engineer', department:'Engineering', stage:'Applied', referredBy:'—', updated:'Jul 20'},
-  {email:'amy.chen@email.com', name:'Amy Chen', role:'Product Designer', department:'Design', stage:'Interview', referredBy:'—', updated:'Jul 21'},
-  {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', department:'Data', stage:'Offer', referredBy:'—', updated:'Jul 18'},
-  {email:'riley.kim@email.com', name:'Riley Kim', role:'Backend Engineer', department:'Engineering', stage:'Applied', referredBy:'—', updated:'Jul 24'},
+  {email:'sutwell.barbara@example.com', name:'Sutwell, Barbara', role:'Production Technician I', department:'Production', stage:'Interview', referredBy:'—', updated:'1/31/2019'},
+  {email:'jeannite.tayana@example.com', name:'Jeannite, Tayana', role:'Production Technician II', department:'Production', stage:'Interview', referredBy:'—', updated:'2/25/2019'},
+  {email:'clayton.rick@example.com', name:'Clayton, Rick', role:'IT Support', department:'IT/IS', stage:'Applied', referredBy:'—', updated:'2/27/2019'},
+  {email:'roby.lori@example.com', name:'Roby, Lori', role:'Data Analyst', department:'IT/IS', stage:'Interview', referredBy:'—', updated:'2/14/2019'},
+  {email:'keatts.kramer@example.com', name:'Keatts, Kramer', role:'Production Technician I', department:'Production', stage:'Interview', referredBy:'—', updated:'1/23/2019'},
+  {email:'tippett.jeanette@example.com', name:'Tippett, Jeanette', role:'Production Technician I', department:'Production', stage:'Interview', referredBy:'—', updated:'1/14/2019'},
+  {email:'zima.colleen@example.com', name:'Zima, Colleen', role:'Production Technician I', department:'Production', stage:'Interview', referredBy:'—', updated:'1/30/2019'},
+  {email:'foss.jason@example.com', name:'Foss, Jason', role:'IT Director', department:'IT/IS', stage:'Applied', referredBy:'—', updated:'1/7/2019'},
 ];
 
 const samples = {
-  'New referral': {refName:'Dana Cole', candName:'Morgan Diaz', candEmail:'morgan.diaz@email.com', role:'Frontend Engineer', department:'Engineering', note:'Worked together at my last job — strong React skills, would be a great fit.'},
-  'Referral for existing applicant': {refName:'Taylor Brooks', candName:'Jordan Lee', candEmail:'jordan.lee@email.com', role:'Backend Engineer', department:'Engineering', note:'Also referring him — we overlapped at a previous company, great engineer.'},
+  'New referral': {refName:'Dana Cole', candName:'Horton, Jayne', candEmail:'horton.jayne@example.com', role:'Database Administrator', department:'IT/IS', note:'Worked together at my last job — strong SQL background, would be a great fit.'},
+  'Referral for existing applicant': {refName:'Morgan Price', candName:'Sutwell, Barbara', candEmail:'sutwell.barbara@example.com', role:'Production Technician I', department:'Production', note:'Also referring her — we overlapped at a previous company, reliable and fast learner.'},
 };
 
 const ids = ['refName','candName','candEmail','role','department','note'];
