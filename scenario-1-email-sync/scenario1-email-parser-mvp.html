@@ -301,7 +301,7 @@
     </div>
     <div class="sheet-status">
       mock tracking sheet<br>
-      <b id="rowCount">3</b> rows
+      <b id="rowCount">14</b> rows
     </div>
   </header>
 
@@ -347,34 +347,48 @@
 </div>
 
 <script>
+// Baseline sheet seeded from demo-data/tracker-seed-demo.csv (14 of 151 rows) —
+// real names/roles/departments/dates from the strong_hires_filtered dataset,
+// not hand-built examples. See demo-data/README.md for provenance.
 const sheet = [
-  {email:'jordan.lee@email.com', name:'Jordan Lee', role:'Backend Engineer', department:'Engineering', stage:'Applied', updated:'Jul 20'},
-  {email:'amy.chen@email.com', name:'Amy Chen', role:'Product Designer', department:'Design', stage:'Interview', updated:'Jul 21'},
-  {email:'sam.torres@email.com', name:'Sam Torres', role:'Data Analyst', department:'Data', stage:'Offer', updated:'Jul 18'},
+  {email:'zima.colleen@example.com', name:'Zima, Colleen', role:'Production Technician I', department:'Production', stage:'Interview', updated:'1/30/2019'},
+  {email:'lunquist.lisa@example.com', name:'Lunquist, Lisa', role:'Production Technician II', department:'Production', stage:'Interview', updated:'2/12/2019'},
+  {email:'driver.elle@example.com', name:'Driver, Elle', role:'Area Sales Manager', department:'Sales', stage:'Applied', updated:'1/27/2019'},
+  {email:'hutter.rosalie@example.com', name:'Hutter, Rosalie', role:'Production Technician II', department:'Production', stage:'Interview', updated:'2/14/2019'},
+  {email:'sander.kamrin@example.com', name:'Sander, Kamrin', role:'Production Technician I', department:'Production', stage:'Interview', updated:'2/18/2019'},
+  {email:'engdahl.jean@example.com', name:'Engdahl, Jean', role:'Production Technician I', department:'Production', stage:'Applied', updated:'2/13/2019'},
+  {email:'goeth.amon@example.com', name:'Goeth, Amon', role:'IT Support', department:'IT/IS', stage:'Interview', updated:'1/10/2019'},
+  {email:'myers.michael@example.com', name:'Myers, Michael', role:'Production Technician I', department:'Production', stage:'Interview', updated:'1/22/2019'},
+  {email:'burkett.benjamin@example.com', name:'Burkett, Benjamin', role:'Production Technician II', department:'Production', stage:'Applied', updated:'1/14/2019'},
+  {email:'givens.myriam@example.com', name:'Givens, Myriam', role:'Area Sales Manager', department:'Sales', stage:'Interview', updated:'1/25/2019'},
+  {email:'simard.kramer@example.com', name:'Simard, Kramer', role:'Data Analyst', department:'IT/IS', stage:'Interview', updated:'1/14/2019'},
+  {email:'roup.simon@example.com', name:'Roup,Simon', role:'IT Manager - DB', department:'IT/IS', stage:'Interview', updated:'2/18/2019'},
+  {email:'daniele.ann@example.com', name:'Daniele, Ann', role:'Sr. Network Engineer', department:'IT/IS', stage:'Applied', updated:'2/12/2019'},
+  {email:'roby.lori@example.com', name:'Roby, Lori', role:'Data Analyst', department:'IT/IS', stage:'Interview', updated:'2/14/2019'},
 ];
 const errors = [];
 let errorSeq = 1;
 
 const samples = {
   'New applicant': `From: notifications@greenhouse.io
-Subject: New Application: Backend Engineer
+Subject: New Application: Director of Sales
 
 A new candidate has applied.
 
-Candidate: Riley Kim
-Email: riley.kim@email.com
-Role: Backend Engineer
-Department: Engineering
+Candidate: Debra Houlihan
+Email: houlihan.debra@example.com
+Role: Director of Sales
+Department: Sales
 Stage: Applied
 Resume: attached`,
 
   'Stage change': `From: notifications@greenhouse.io
-Subject: Stage Update: Backend Engineer
+Subject: Stage Update: Area Sales Manager
 
-Candidate: Jordan Lee
-Email: jordan.lee@email.com
-Role: Backend Engineer
-Department: Engineering
+Candidate: Elle Driver
+Email: driver.elle@example.com
+Role: Area Sales Manager
+Department: Sales
 Stage: Phone Screen`,
 
   'Unparseable forward': `From: taylor.hm@company.com
